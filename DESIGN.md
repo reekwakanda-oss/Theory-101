@@ -1,22 +1,25 @@
 ---
 name: Theory 101
-description: Music theory carved from a single slab of blue-hour stone, lit from within.
+description: Music theory carved from a single slab of pale stone, lit from within.
 colors:
-  stone: "#232a3b"
-  shade: "#161b27"
-  sheen: "#313b54"
-  ink: "#eef1f8"
-  ink-soft: "#aeb8ce"
-  ink-faint: "#939ebb"
-  glow: "#f2bd6c"
-  glow-deep: "#c98f3e"
-  right: "#79d9ae"
-  wrong: "#e88fa1"
-  stone-day: "#dfe5f0"
-  shade-day: "#b8c1d4"
-  sheen-day: "#ffffff"
-  ink-day: "#232a3b"
-  glow-day: "#8a5a12"
+  stone: "#edf0f6"
+  shade: "#c3cad9"
+  sheen: "#ffffff"
+  ink: "#232a3b"
+  ink-soft: "#4a5468"
+  ink-faint: "#5b6478"
+  rule: "#5a6478"
+  key-black: "#2b3242"
+  glow: "#8a5a12"
+  glow-deep: "#5c3c0a"
+  right: "#1a6b49"
+  wrong: "#a8324c"
+  stone-night: "#232a3b"
+  shade-night: "#161b27"
+  sheen-night: "#313b54"
+  ink-night: "#eef1f8"
+  rule-night: "#9aa6c2"
+  glow-night: "#f2bd6c"
 typography:
   display:
     fontFamily: "Candara, Optima, 'Gill Sans Nova', 'Segoe UI Variable Display', sans-serif"
@@ -85,7 +88,7 @@ components:
 
 **Creative North Star: "The Lit Slab"**
 
-The entire interface is one continuous piece of blue-hour stone. Nothing sits *on*
+The entire interface is one continuous piece of pale stone. Nothing sits *on*
 the page; everything is carved *out of* it. Panels rise from the surface, wells sink
 into it, and the only thing that ever changes color is light — a single warm
 candle-amber that appears exactly where the learner is active and nowhere else.
@@ -109,37 +112,42 @@ vocabulary.
 - One accent hue (candlelight amber) for live state; the two verdict hues and the six
   rank tiers are state marks, not palette
 - Flared humanist letterforms, cut into the stone with a paired text-shadow
-- Dark is the primary rendition; light is the same stone in daylight
+- Daylight is the primary rendition; the blue-hour rendition is opt-in via `data-theme="dark"` and no longer follows the OS
 
 ## Colors
 
-A cold blue-slate ground carrying one warm light, plus two semantic hues that appear
-only on answer feedback.
+A pale, barely-blue ground carrying one warm light, plus two semantic hues that
+appear only on answer feedback, and one token reserved for notation.
 
 ### Primary
-- **Candlelight Amber** (`#f2bd6c`): the light inside the stone. Focus rings, lit
+- **Candlelight Amber** (`#8a5a12` daylight, `#f2bd6c` night): the light inside the stone. Focus rings, lit
   mastery pips, the active rank mark, the bloom behind a correct answer, the lit
   piano key. Never fills a *panel*, and never decorates — but it is the light itself,
   so light-emitting objects (a lit pip, the lit key face, a notehead) are made of it.
-  In daylight it darkens to `#8a5a12`: the lighter amber measures 2.18:1 on the
-  moonstone, which fails the 3:1 floor for the focus ring, the pips and the lit key.
+  A lighter gold measured 2.18:1 on the pale stone, failing the 3:1 floor for the
+  focus ring, the pips and the lit key — hence the deep amber in daylight.
 
 ### Secondary
-- **Jade Bloom** (`#79d9ae`): correct answers only.
-- **Clay Rose** (`#e88fa1`): wrong answers only. Muted deliberately — a wrong answer
+- **Jade Bloom** (`#1a6b49` daylight, `#79d9ae` night): correct answers only.
+- **Clay Rose** (`#a8324c` daylight, `#e88fa1` night): wrong answers only. Muted deliberately — a wrong answer
   costs the streak and nothing else, so it must not read as alarm.
 
 ### Neutral
-- **Blue-Hour Stone** (`#232a3b`): the single material. Page ground, every panel,
-  every control. Dark rendition.
-- **Deep Shade** (`#161b27`) / **Pale Sheen** (`#313b54`): the shadow pair that
-  produces all depth. Never used as fills.
-- **Moonlight** (`#eef1f8`): primary text.
-- **Slate Vapor** (`#aeb8ce`): secondary text. **Dim Vapor** (`#939ebb`): tertiary,
+- **Porcelain Stone** (`#edf0f6`): the single material. Page ground, every panel,
+  every control. Barely blue, and deliberately not soft UI's `#e0e5ec` grey.
+- **Deep Shade** (`#c3cad9`) / **Pale Sheen** (`#ffffff`): the shadow pair that
+  produces all depth. They fill only where a groove exposes the floor beneath —
+  the keybed and an unlit pip.
+- **Rule** (`#5a6478` daylight, `#9aa6c2` night): staff and ledger lines. Notation is
+  content, so it gets its own token and never borrows the shadow color.
+- **Key Black** (`#2b3242` daylight, `#12161f` night): the piano's black keys, which
+  stay black in either light.
+- **Deep Slate** (`#232a3b`): primary text.
+- **Slate Vapor** (`#4a5468`): secondary text. **Dim Vapor** (`#5b6478`): tertiary,
   held at 5.4:1 — deliberate margin, because the room light lifts the ground near the
   top of the page and a 4.5:1 value drifts under AA there.
-- **Moonstone Day** (`#dfe5f0`): the light rendition's ground — the same stone
-  under daylight, cool and chalky rather than the conventional soft-UI grey.
+- **Blue-Hour Stone** (`#232a3b`): the same material at night. Preserved in full as
+  an opt-in rendition, not wired to `prefers-color-scheme`.
 
 ### Named Rules
 
@@ -150,6 +158,11 @@ shadow.
 **The Light Means Live Rule.** Candlelight amber marks only what is currently active
 or achieved. If amber appears on something the learner cannot act on or has not
 earned, it is decoration and must be removed.
+
+**The Notation Is Content Rule.** Staff lines, ledger lines and noteheads are things
+the learner must READ, not chrome. They use `--rule` and `--glow`, never the shadow
+pair. Borrowing `--shade` for staff lines put them at roughly 1.4:1 and made the staff
+invisible — the exact failure this rule exists to prevent.
 
 **The AA Floor Rule.** Soft UI's habit of tonal, low-contrast text is refused
 outright. Body and secondary text hold ≥4.5:1 against the stone; the shadow pair
@@ -181,9 +194,9 @@ title scale or above. It is the one thing on screen the learner must read, and i
 outranks the screen title.
 
 **The Cut Letter Rule.** Every display-face string carries the incised text-shadow
-(`--incised`: `1px 1px 2px var(--shade), -1px -1px 1px var(--sheen)`) — the same
-shade-below-right, sheen-above-left pairing that produces every other surface in the
-system. Type that sits flat on the stone has not been carved, and the flared stems
+(`--incised`) — a crisp sheen highlight directly below the glyph with a faint shadow
+above, which is how a groove reads in daylight; the night rendition inverts it, because
+there the glyph is lighter than the ground. Type that sits flat on the stone has not been carved, and the flared stems
 alone do not do it.
 
 ## Layout

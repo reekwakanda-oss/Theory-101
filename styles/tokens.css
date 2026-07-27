@@ -1,15 +1,15 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    DIRECTION CONTRACT — "The Lit Slab"
 
-   THESIS: Theory 101 is one slab of blue-hour stone; every control is carved out
-   of it and lights from within when touched. Refuses grey-plastic soft UI and
-   its opposite, near-black-plus-neon.
+   THESIS: Theory 101 is one slab of stone; every control is carved out of it and
+   lights from within when touched. Refuses grey-plastic soft UI and its
+   opposite, near-black-plus-neon.
 
-   OWN-WORLD: One continuous cold slate ground — panels never differ in color
-   from the page. Depth only from paired offset shadows: cold shade down-right,
-   pale sheen up-left; inverting them presses the form. One warm accent,
-   candlelight amber, appears only where the learner is live or has earned it.
-   Flared humanist type (Candara/Optima) read as incised.
+   OWN-WORLD: One continuous ground — panels never differ in color from the page.
+   Depth only from paired offset shadows: cool shade down-right, pale sheen
+   up-left; inverting them presses the form. One warm accent, candlelight amber,
+   appears only where the learner is live or has earned it. Flared humanist type
+   (Candara/Optima) cut into the surface.
 
    STORY: The learner meets a calm instrument panel, reads progress as how much
    of the stone is lit, answers, and feels the material warm.
@@ -19,37 +19,49 @@
    as pressed pebbles, and Begin as a single amber-lit key.
 
    FORM: Brief-pinned world (neumorphic + ethereal). A pinned direction beats the
-   roll, so no seed key was drawn; rendition chosen against the world's full
-   material range rather than its softest default.
+   roll, so no seed key was drawn.
+
+   RENDITION: Daylight is primary — pale porcelain, minimal blue, the airiest the
+   material goes. The blue-hour rendition is preserved but opt-in via
+   `<html data-theme="dark">`; it no longer follows the OS.
    ───────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* The single material. Every surface is this color. */
-  --stone: #232a3b;
+  /* The single material. Every surface is this color.
+     Pale porcelain: barely blue, and deliberately not soft UI's #e0e5ec grey. */
+  --stone: #edf0f6;
 
   /* The shadow pair that produces all depth. Never fills. */
-  --shade: #161b27;
-  --sheen: #313b54;
+  --shade: #c3cad9;
+  --sheen: #ffffff;
 
-  /* Ink — held at or above 4.5:1 on the stone. */
-  --ink: #eef1f8;        /* 12.5:1 */
-  --ink-soft: #aeb8ce;   /*  7.2:1 */
-  --ink-faint: #939ebb;  /*  5.4:1 — margin so the roomlight can't drag it under AA */
+  /* Ink — every value measured against the stone, all clearing AA. */
+  --ink: #232a3b;        /* 12.6:1 */
+  --ink-soft: #4a5468;   /*  6.6:1 */
+  --ink-faint: #5b6478;  /*  5.2:1 */
+
+  /* Notation. Staff lines and ledger lines are CONTENT, not chrome, so they get
+     their own token instead of borrowing the shadow color — that was the bug
+     that made the staff unreadable. */
+  --rule: #5a6478;       /*  5.5:1 */
+
+  /* A piano's black keys are black in any light. */
+  --key-black: #2b3242;
 
   /* The light inside the stone. */
-  --glow: #f2bd6c;       /*  8.4:1 */
-  --glow-deep: #c98f3e;
+  --glow: #8a5a12;       /*  5.2:1 — clears AA text and the 3:1 non-text floor */
+  --glow-deep: #5c3c0a;
   --glow-text: var(--glow);
-  --glow-halo: rgba(242, 189, 108, 0.30);
-  --glow-edge: rgba(242, 189, 108, 0.55);
+  --glow-halo: rgba(138, 90, 18, 0.26);
+  --glow-edge: rgba(92, 60, 10, 0.55);
 
   /* Answer feedback. State, not palette. */
-  --right: #79d9ae;      /*  8.4:1 */
-  --right-halo: rgba(121, 217, 174, 0.28);
-  --wrong: #e88fa1;      /*  6.1:1 */
-  --wrong-halo: rgba(232, 143, 161, 0.26);
+  --right: #1a6b49;      /*  5.7:1 */
+  --right-halo: rgba(26, 107, 73, 0.22);
+  --wrong: #a8324c;      /*  5.7:1 */
+  --wrong-halo: rgba(168, 50, 76, 0.20);
 
   /* Depth vocabulary */
   --raised: -6px -6px 14px var(--sheen), 8px 8px 20px var(--shade);
@@ -63,8 +75,10 @@
      rather than seven different glows at six different sizes. */
   --warm: 0 0 24px var(--glow-halo);
 
-  /* Lettering cut into the stone: a shade below-right, a sheen above-left. */
-  --incised: 1px 1px 2px var(--shade), -1px -1px 1px var(--sheen);
+  /* Lettering cut into the stone. On a pale ground the classic debossed reading is
+     a crisp sheen highlight directly below the glyph with a faint shadow above —
+     a blurred pair here just reads muddy at display size. */
+  --incised: 0 1px 0 var(--sheen), 0 -1px 1px var(--shade);
 
   /* Type — incised display, workhorse body. No webfont request. */
   --font-display: Candara, Optima, "Gill Sans Nova", "Segoe UI Variable Display",
@@ -98,49 +112,52 @@
   --dur-warm: 240ms;
 
   /* Rank tiers — a hue shift on the mark, never a filled badge. */
+  --iron: #545e74;
+  --bronze: #8a5a2c;
+  --silver: #4f5b72;
+  --gold: #8a5a12;
+  --platinum: #1f6f68;
+  --diamond: #3f5aa6;
+}
+
+/* The blue-hour rendition: the same stone at night. Preserved and complete, but
+   opt-in — set data-theme="dark" on <html>. It is deliberately NOT wired to
+   prefers-color-scheme any more, because the dark blue ground is what made the
+   interface feel heavy and the staff unreadable. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --stone: #232a3b;
+  --shade: #161b27;
+  --sheen: #313b54;
+
+  --ink: #eef1f8;        /* 12.7:1 */
+  --ink-soft: #aeb8ce;   /*  7.2:1 */
+  --ink-faint: #939ebb;  /*  5.4:1 */
+
+  --rule: #9aa6c2;       /*  5.9:1 — was the shadow color, i.e. invisible */
+  --key-black: #12161f;
+
+  /* On a dark ground the glyph is lighter than the stone, so the highlight goes
+     above and the shadow below — the inverse of the daylight reading. */
+  --incised: 0 -1px 0 var(--sheen), 0 1px 2px var(--shade);
+
+  --glow: #f2bd6c;       /*  8.4:1 */
+  --glow-deep: #c98f3e;
+  --glow-halo: rgba(242, 189, 108, 0.30);
+  --glow-edge: rgba(242, 189, 108, 0.55);
+
+  --right: #79d9ae;      /*  8.4:1 */
+  --right-halo: rgba(121, 217, 174, 0.28);
+  --wrong: #e88fa1;      /*  6.1:1 */
+  --wrong-halo: rgba(232, 143, 161, 0.26);
+
   --iron: #9aa4bd;
   --bronze: #d09263;
   --silver: #c3cede;
   --gold: #f2bd6c;
   --platinum: #8fd8cf;
   --diamond: #a9c4f5;
-}
-
-/* The same stone in daylight. Deliberately a cool moonstone, not soft UI's #e0e5ec. */
-@media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
-
-    --stone: #dfe5f0;
-
-    --shade: #b8c1d4;
-    --sheen: #ffffff;
-
-    --ink: #232a3b;        /* 11.3:1 */
-    --ink-soft: #48526a;   /*  6.1:1 */
-    --ink-faint: #565f77;  /*  5.0:1 */
-
-    /* One amber for everything in daylight. A lighter one measured 2.18:1 on the
-       moonstone, which fails both AA text and the 3:1 floor for the focus ring,
-       the pips and the lit key — the three things the product is about. */
-    --glow: #8a5a12;       /*  4.7:1 */
-    --glow-deep: #5c3c0a;
-    --glow-text: #8a5a12;
-    --glow-halo: rgba(138, 90, 18, 0.30);
-    --glow-edge: rgba(92, 60, 10, 0.60);
-
-    --right: #1a6b49;      /*  5.1:1 */
-    --right-halo: rgba(26, 107, 73, 0.24);
-    --wrong: #a8324c;      /*  5.2:1 */
-    --wrong-halo: rgba(168, 50, 76, 0.22);
-
-    --iron: #545e74;       /*  5.1:1 — IRON is the most-repeated label on the dashboard */
-    --bronze: #8a5a2c;
-    --silver: #4f5b72;     /*  5.4:1 */
-    --gold: #8a5a12;
-    --platinum: #1f6f68;
-    --diamond: #3f5aa6;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

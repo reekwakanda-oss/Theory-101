@@ -6,32 +6,38 @@
     "colorMeta": {
       "stone": {
         "role": "neutral",
-        "displayName": "Blue-Hour Stone",
-        "canonical": "#232a3b",
+        "displayName": "Porcelain Stone",
+        "canonical": "#edf0f6",
         "tonalRamp": ["#0d1018", "#161b27", "#1c2231", "#232a3b", "#2b3348", "#3a4460", "#5c6780", "#aeb8ce"]
       },
       "glow": {
         "role": "primary",
         "displayName": "Candlelight Amber",
-        "canonical": "#f2bd6c",
+        "canonical": "#8a5a12",
         "tonalRamp": ["#3a2a10", "#5c421a", "#8a5a12", "#b98a34", "#c98f3e", "#f2bd6c", "#f8d69f", "#fdefd6"]
       },
       "right": {
         "role": "secondary",
         "displayName": "Jade Bloom",
-        "canonical": "#79d9ae",
+        "canonical": "#1a6b49",
         "tonalRamp": ["#0d2b1e", "#134030", "#1a6b49", "#237f58", "#3fae82", "#79d9ae", "#a9e9ca", "#dbf6e9"]
       },
       "wrong": {
         "role": "tertiary",
         "displayName": "Clay Rose",
-        "canonical": "#e88fa1",
+        "canonical": "#a8324c",
         "tonalRamp": ["#33121b", "#4d1a27", "#a8324c", "#c2506a", "#d66f86", "#e88fa1", "#f2b8c4", "#fae2e8"]
       },
-      "stone-day": {
+      "rule": {
         "role": "neutral",
-        "displayName": "Moonstone Day",
-        "canonical": "#dfe5f0",
+        "displayName": "Rule",
+        "canonical": "#5a6478",
+        "tonalRamp": ["#161b27","#232a3b","#3a4460","#5a6478","#7d88a3","#9aa6c2","#c3cad9","#edf0f6"]
+      },
+      "stone-night": {
+        "role": "neutral",
+        "displayName": "Blue-Hour Stone (opt-in)",
+        "canonical": "#232a3b",
         "tonalRamp": ["#232a3b", "#3a4460", "#565f77", "#8b96b2", "#b8c1d4", "#dfe5f0", "#eef1f8", "#ffffff"]
       }
     },
@@ -45,7 +51,7 @@
       { "name": "pressed", "value": "inset -5px -5px 12px var(--sheen), inset 6px 6px 14px var(--shade)", "purpose": "Containers holding content, selected chips, held controls." },
       { "name": "settled", "value": "-4px -4px 10px var(--sheen), 5px 6px 14px var(--shade)", "purpose": "Resting state of large reading panels, and of tiles outside the learner's chosen focus." },
       { "name": "warm", "value": "0 0 24px var(--glow-halo)", "purpose": "The ethereal layer and the single hover treatment. One radius everywhere; always added to a real offset shadow." },
-      { "name": "incised", "value": "1px 1px 2px var(--shade), -1px -1px 1px var(--sheen)", "purpose": "text-shadow. Cuts display-face lettering into the stone using the same shade/sheen pairing as every surface." }
+      { "name": "incised", "value": "0 1px 0 var(--sheen), 0 -1px 1px var(--shade)", "purpose": "text-shadow. Cuts display-face lettering into the stone: sheen highlight below the glyph, faint shadow above. The night rendition inverts it." }
     ],
     "motion": [
       { "name": "ease-settle", "value": "cubic-bezier(0.16, 0.84, 0.28, 1)", "purpose": "Exponential ease-out. The material settling after it is pressed." },
@@ -85,9 +91,9 @@
       "name": "Progress Pips",
       "kind": "custom",
       "refersTo": "pips",
-      "description": "Distance to mastery, read as how much of the row is lit. Wells pressed into the stone.",
+      "description": "Distance to mastery, read as how much of the row is lit. Holes cut down to the darker floor, so the unlit count stays legible on a pale ground.",
       "html": "<div class=\"ds-pips\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i></i></div>",
-      "css": ".ds-pips { display: flex; gap: 9px; } .ds-pips i { width: 11px; height: 11px; border-radius: 999px; background: var(--stone); box-shadow: inset -2px -2px 4px var(--sheen), inset 2px 2px 5px var(--shade); transition: box-shadow 240ms cubic-bezier(.16,.84,.28,1), background 240ms; } .ds-pips i.on { background: var(--glow); box-shadow: 0 0 10px var(--glow-halo), inset 0 -1px 2px var(--glow-deep); }"
+      "css": ".ds-pips { display: flex; gap: 9px; } .ds-pips i { width: 11px; height: 11px; border-radius: 999px; background: var(--shade); box-shadow: inset -2px -2px 4px var(--sheen), inset 2px 2px 5px var(--shade); transition: box-shadow 240ms cubic-bezier(.16,.84,.28,1), background 240ms; } .ds-pips i.on { background: var(--glow); box-shadow: 0 0 10px var(--glow-halo), inset 0 -1px 2px var(--glow-deep); }"
     },
     {
       "name": "Rank Mark",
@@ -141,6 +147,7 @@
       "Don't add a second accent. Jade and clay rose are verdict state and the six rank tiers are status marks; neither licenses a decorative second hue.",
       "Don't animate more than the one authored moment (the material warming); scattered hover effects at assorted radii are not this world's motion - use --warm.",
       "Don't let amber appear on inert prose.",
+      "Don't style notation (staff lines, ledger lines, noteheads) with the shadow pair - it is content and uses --rule. Borrowing --shade put the staff at about 1.4:1 and made it invisible.",
       "Don't separate adjacent objects with a stroke. The keyboard's keys are divided by grooves cut to a darker keybed, not by outlines."
     ]
   }

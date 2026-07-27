@@ -273,11 +273,14 @@ button { font: inherit; cursor: pointer; }
 .progress-label { color: var(--ink-faint); font-size: var(--step--1); }
 
 .pips { display: flex; gap: 9px; }
+/* An unlit pip is a hole cut down to the darker floor, like the keybed. A pip
+   floored in --stone is invisible on a pale ground, and the distance to mastery
+   has to be readable at a glance — that's a product principle, not a nicety. */
 .pip {
   width: 11px;
   height: 11px;
   border-radius: var(--r-full);
-  background: var(--stone);
+  background: var(--shade);
   box-shadow: var(--pressed-xs);
   transition: box-shadow var(--dur-warm) var(--ease-settle), background var(--dur-warm);
 }
@@ -437,7 +440,9 @@ button { font: inherit; cursor: pointer; }
    shows the darker floor, and each key catches light on its left edge and lip. */
 .keybed { fill: var(--shade); }
 .key-white { fill: var(--stone); }
-.key-black { fill: var(--shade); }
+/* A piano's black keys are black in any light — they can't follow the shadow
+   token, or they turn pale in the daylight rendition. */
+.key-black { fill: var(--key-black); }
 .key-edge { stroke: var(--sheen); stroke-width: 1.2; stroke-linecap: round; opacity: 0.5; }
 .key-lip { stroke: var(--sheen); stroke-width: 2; stroke-linecap: round; opacity: 0.75; }
 /* Lit from beneath: the face warms toward its base and blooms under it. */
@@ -447,8 +452,12 @@ button { font: inherit; cursor: pointer; }
 .key-bloom { fill: var(--glow); opacity: 0.5; }
 
 .staff { width: min(100%, 272px); height: auto; }
-.staff-cut { stroke: var(--shade); stroke-width: 1.5; }
-.staff-lip { stroke: var(--sheen); stroke-width: 1.1; opacity: 0.7; }
+/* Staff and ledger lines are notation the learner has to READ, so they use the
+   --rule token rather than the shadow color. Borrowing --shade put them at about
+   1.4:1 against the ground and made the staff effectively invisible. The sheen
+   lip below each line keeps the engraved feel without costing legibility. */
+.staff-cut { stroke: var(--rule); stroke-width: 1.5; }
+.staff-lip { stroke: var(--sheen); stroke-width: 1.1; opacity: 0.55; }
 .clef { fill: var(--ink); font-family: var(--font-display); }
 .notehead { fill: var(--glow); }
 .note-bloom { fill: var(--glow); opacity: 0.45; }

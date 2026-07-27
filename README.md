@@ -72,6 +72,19 @@ it by concept 10.
 **The aesthetic is a constraint, not a canvas.** Everything visual lives in
 `styles/tokens.css`. Restyling the whole app means editing one file.
 
+**Two renditions of one material.** Daylight (pale porcelain) is the default. The
+blue-hour rendition is preserved in full and is opt-in — it deliberately does *not*
+follow `prefers-color-scheme`, because the dark blue ground made the interface heavy
+and the staff hard to read. To use it, set the attribute on the root element:
+
+```html
+<html lang="en" data-theme="dark">
+```
+
+**Notation is content, not chrome.** Staff lines, ledger lines and noteheads use the
+`--rule` and `--glow` tokens, never the shadow pair. Styling them with `--shade` put
+them at roughly 1.4:1 against the ground and made the staff invisible.
+
 ## Scope
 
 v1 has **playback only** — synthesized tones for any note, interval, chord or
