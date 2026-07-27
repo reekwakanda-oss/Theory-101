@@ -1,0 +1,102 @@
+/* The entire "ethereal" aesthetic lives here.
+   One palette, one type scale, one spacing scale, one motion rule.
+   Deliberately time-boxed - see DECISIONS.md. Changing the feel of the whole
+   app should mean editing this file and nothing else. */
+
+:root {
+  /* Surfaces — cool, misty, low-contrast without being murky */
+  --bg: #f6f5fb;
+  --bg-veil: rgba(255, 255, 255, 0.62);
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-raised: rgba(255, 255, 255, 0.92);
+  --border: rgba(94, 88, 140, 0.16);
+  --border-strong: rgba(94, 88, 140, 0.32);
+
+  /* Ink */
+  --text: #2b2740;
+  --text-soft: #5d5878;
+  --text-faint: #8983a3;
+
+  /* Accents — periwinkle drifting to a pale sea green */
+  --accent: #6c5ce7;
+  --accent-soft: #a99cf5;
+  --accent-wash: rgba(108, 92, 231, 0.10);
+  --correct: #3f9c78;
+  --correct-wash: rgba(63, 156, 120, 0.14);
+  --wrong: #c2607a;
+  --wrong-wash: rgba(194, 96, 122, 0.13);
+
+  /* Aurora blobs behind everything */
+  --aurora-1: rgba(150, 132, 245, 0.30);
+  --aurora-2: rgba(122, 196, 210, 0.26);
+  --aurora-3: rgba(226, 160, 205, 0.22);
+
+  /* Type */
+  --font-sans: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --step--1: clamp(0.82rem, 0.79rem + 0.14vw, 0.9rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.1rem);
+  --step-1: clamp(1.2rem, 1.12rem + 0.4vw, 1.45rem);
+  --step-2: clamp(1.5rem, 1.35rem + 0.75vw, 2rem);
+  --step-3: clamp(2rem, 1.7rem + 1.5vw, 3rem);
+
+  /* Space */
+  --sp-1: 0.375rem;
+  --sp-2: 0.75rem;
+  --sp-3: 1.25rem;
+  --sp-4: 2rem;
+  --sp-5: 3.25rem;
+
+  --radius: 16px;
+  --radius-sm: 10px;
+
+  /* One motion rule, used everywhere */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 280ms;
+
+  --shadow: 0 1px 2px rgba(43, 39, 64, 0.04), 0 8px 28px rgba(43, 39, 64, 0.07);
+
+  /* Rank tiers */
+  --iron: #8d8ea3;
+  --bronze: #b07a4e;
+  --silver: #8fa0b3;
+  --gold: #c9a227;
+  --platinum: #6fa5a0;
+  --diamond: #7f8ff0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #11101a;
+    --bg-veil: rgba(24, 22, 38, 0.55);
+    --surface: rgba(35, 32, 54, 0.62);
+    --surface-raised: rgba(42, 38, 64, 0.86);
+    --border: rgba(184, 176, 235, 0.14);
+    --border-strong: rgba(184, 176, 235, 0.3);
+
+    --text: #e9e6f6;
+    --text-soft: #b5aed3;
+    --text-faint: #8b84a9;
+
+    --accent: #9c8cf7;
+    --accent-soft: #7d6de0;
+    --accent-wash: rgba(156, 140, 247, 0.14);
+    --correct: #63c39c;
+    --correct-wash: rgba(99, 195, 156, 0.16);
+    --wrong: #e08aa1;
+    --wrong-wash: rgba(224, 138, 161, 0.16);
+
+    --aurora-1: rgba(112, 92, 220, 0.32);
+    --aurora-2: rgba(64, 148, 168, 0.26);
+    --aurora-3: rgba(178, 96, 158, 0.22);
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 40px rgba(0, 0, 0, 0.34);
+
+    --iron: #9a9bb0;
+    --silver: #a9bacd;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: 1ms; }
+}
