@@ -1,0 +1,20 @@
+{
+  "enabledPlugins": {
+    "everything-claude-code@everything-claude-code": true,
+    "impeccable@impeccable": true
+  },
+  "extraKnownMarketplaces": {
+    "everything-claude-code": {
+      "source": {
+        "source": "github",
+        "repo": "WorldFlowAI/everything-claude-code"
+      }
+    },
+    "impeccable": {
+      "source": {
+        "source": "github",
+        "repo": "pbakaus/impeccable"
+      }
+    }
+  }
+}
