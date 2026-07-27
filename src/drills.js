@@ -59,15 +59,15 @@ function noteDrill(clef, ranges) {
 export const DRILLS = [
   {
     id: 'note-treble',
-    title: 'Note Identity — Treble',
+    title: 'Treble Clef',
     blurb: 'Read noteheads on the treble staff, faster each rank.',
     focus: 'reading',
     generate: noteDrill('treble', TREBLE_RANGE),
   },
   {
     id: 'note-bass',
-    title: 'Note Identity — Bass',
-    blurb: 'The same, on the bass staff.',
+    title: 'Bass Clef',
+    blurb: 'The same reading drill, on the bass staff.',
     focus: 'reading',
     generate: noteDrill('bass', BASS_RANGE),
   },
@@ -94,7 +94,7 @@ export const DRILLS = [
   },
   {
     id: 'chord-ear',
-    title: 'Chord Quality by Ear',
+    title: 'Chord Quality',
     blurb: 'Major, minor, diminished, augmented — told apart by sound alone.',
     focus: 'ear',
     generate(difficulty) {

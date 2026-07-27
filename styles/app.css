@@ -1,361 +1,467 @@
-/* Layout and components. All colour, type and motion values come from tokens.css. */
+/* Everything is carved from one stone. Color values live in tokens.css. */
 
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-ui);
+  background: var(--stone);
+  color: var(--ink);
+  font-family: var(--font-body);
   font-size: var(--step-0);
-  line-height: 1.6;
+  line-height: 1.62;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Drifting aurora wash — the one decorative flourish. */
-.aurora {
+/* Ambient room light. One faint pool, not a gradient treatment. */
+.roomlight {
   position: fixed;
-  inset: -25%;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(38% 42% at 18% 22%, var(--aurora-1), transparent 70%),
-    radial-gradient(34% 38% at 82% 28%, var(--aurora-2), transparent 70%),
-    radial-gradient(40% 44% at 50% 84%, var(--aurora-3), transparent 70%);
-  filter: blur(28px);
-  animation: drift 34s var(--ease) infinite alternate;
-}
-
-@keyframes drift {
-  from { transform: translate3d(-1.5%, -1%, 0) scale(1); }
-  to   { transform: translate3d(2%, 2.5%, 0) scale(1.08); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .aurora { animation: none; }
+  background: radial-gradient(58% 46% at 50% 8%, var(--sheen), transparent 72%);
+  opacity: 0.5;
 }
 
 #app {
-  max-width: 62rem;
+  max-width: 58rem;
   margin: 0 auto;
-  padding: var(--sp-5) var(--sp-3) var(--sp-5);
+  padding: var(--sp-xl) var(--sp-md);
 }
 
-h1, h2, h3 { font-family: var(--font-sans); font-weight: 600; line-height: 1.2; margin: 0; }
-h1 { font-size: var(--step-3); letter-spacing: -0.015em; }
+/* Display type is cut into the stone, not printed on it. */
+h1, h2, h3, .prompt, .card-title, .tile-title, .banner-title, .formula, .eyebrow {
+  text-shadow: var(--incised);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.15;
+  margin: 0;
+}
+h1 { font-size: var(--step-3); letter-spacing: 0.005em; }
 h2 { font-size: var(--step-1); }
-p { margin: 0 0 var(--sp-2); }
+p { margin: 0 0 var(--sp-sm); }
 
 .eyebrow {
-  font-size: var(--step--1);
-  letter-spacing: 0.14em;
+  font-family: var(--font-label);
+  font-size: var(--step-label);
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--text-faint);
-  margin-bottom: var(--sp-1);
+  color: var(--ink-faint);
+  margin-bottom: var(--sp-xs);
 }
 
-.lede { font-size: var(--step-1); color: var(--text-soft); max-width: 40ch; }
-.sub { color: var(--text-faint); font-size: var(--step--1); max-width: 56ch; }
-
-/* --- Buttons -------------------------------------------------------------- */
+.lede { font-size: var(--step-1); color: var(--ink-soft); max-width: 38ch; }
+.sub { color: var(--ink-faint); font-size: var(--step--1); max-width: 62ch; }
 
 button { font: inherit; cursor: pointer; }
 
+:focus-visible {
+  outline: 2px solid var(--glow);
+  outline-offset: 4px;
+  border-radius: var(--r-pebble);
+}
+
+/* ── Carved primitives ───────────────────────────────────────────────────── */
+
 .primary {
   display: inline-block;
-  margin-top: var(--sp-3);
-  padding: 0.75rem 1.75rem;
+  margin-top: var(--sp-md);
+  padding: 16px 40px;
   border: none;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  color: var(--glow-text);
   font-weight: 600;
   letter-spacing: 0.01em;
-  box-shadow: var(--shadow);
-  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
+  box-shadow: var(--raised);
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
 }
-.primary:hover { transform: translateY(-1px); background: var(--accent-soft); }
-.primary:active { transform: translateY(0); }
+.primary:hover { box-shadow: var(--raised), var(--warm); }
+.primary:active { box-shadow: var(--pressed); color: var(--glow-deep); }
 
 .link {
   background: none;
   border: none;
-  padding: 0;
-  color: var(--text-faint);
+  padding: 4px 2px;
+  color: var(--ink-faint);
   font-size: var(--step--1);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  transition: color var(--dur-warm) var(--ease-settle);
 }
-.link:hover { color: var(--accent); border-bottom-color: var(--accent); }
-.link.centred { display: block; margin: var(--sp-3) auto 0; }
+.link:hover { color: var(--glow-text); }
+.link.centred { display: block; margin: var(--sp-md) auto 0; }
 
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+/* ── Welcome ─────────────────────────────────────────────────────────────── */
 
-/* --- Welcome -------------------------------------------------------------- */
+.welcome-head { margin-bottom: var(--sp-xl); }
+.welcome-head h1 { margin-bottom: var(--sp-sm); }
 
-.welcome-head { margin-bottom: var(--sp-5); }
-.welcome-head h1 { margin-bottom: var(--sp-2); }
+.field { margin-bottom: var(--sp-lg); }
+.field h2 { margin-bottom: var(--sp-sm); }
 
-.field { margin-bottom: var(--sp-4); }
-.field h2 { margin-bottom: var(--sp-2); }
-
-.cards { display: grid; gap: var(--sp-2); grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+.cards {
+  display: grid;
+  gap: var(--sp-md);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  margin-top: var(--sp-md);
+}
 
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: var(--sp-xs);
   text-align: left;
-  padding: var(--sp-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  backdrop-filter: blur(12px);
+  padding: var(--sp-md);
+  border: none;
+  border-radius: var(--r-slab);
+  background: var(--stone);
   color: inherit;
-  transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease),
-              background var(--dur) var(--ease);
+  box-shadow: var(--raised);
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
 }
-.card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
-.card.selected { border-color: var(--accent); background: var(--accent-wash); }
-.card-title { font-family: var(--font-sans); font-size: var(--step-1); }
-.card-detail { color: var(--text-faint); font-size: var(--step--1); }
+.card:hover { box-shadow: var(--raised), var(--warm); }
+/* The Press Inverts Rule: selection is felt as depth, not fill. */
+.card.selected { box-shadow: var(--pressed); }
+.card.selected .card-title { color: var(--glow-text); }
 
-.chips { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-top: var(--sp-2); }
+.card-title { font-family: var(--font-display); font-size: var(--step-1); }
+.card-detail { color: var(--ink-faint); font-size: var(--step--1); line-height: 1.5; }
+
+.chips { display: flex; flex-wrap: wrap; gap: var(--sp-sm); margin-top: var(--sp-md); }
+
 .chip {
-  padding: 0.4rem 0.95rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text-soft);
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  color: var(--ink-soft);
   font-size: var(--step--1);
-  transition: all var(--dur) var(--ease);
+  box-shadow: var(--raised-sm);
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
 }
-.chip:hover { border-color: var(--border-strong); }
-.chip.selected { border-color: var(--accent); background: var(--accent-wash); color: var(--accent); }
+.chip:hover { color: var(--ink); }
+.chip.selected { color: var(--glow-text); box-shadow: var(--pressed-sm); }
 
-/* --- Concept / lesson reading -------------------------------------------- */
+/* ── Reading surfaces ────────────────────────────────────────────────────── */
 
-.concept-head { margin-bottom: var(--sp-4); }
-.concept-head .link { display: inline-block; margin-bottom: var(--sp-3); }
+.concept-head { margin-bottom: var(--sp-lg); }
+.concept-head .link { display: inline-block; margin-bottom: var(--sp-md); }
 
 .slide {
-  padding: var(--sp-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  backdrop-filter: blur(12px);
-  box-shadow: var(--shadow);
-  font-family: var(--font-sans);
-  font-size: var(--step-1);
-  line-height: 1.65;
-  margin-bottom: var(--sp-3);
-  animation: rise var(--dur) var(--ease) both;
+  padding: var(--sp-lg);
+  border: none;
+  border-radius: var(--r-slab);
+  background: var(--stone);
+  box-shadow: var(--settled);
+  color: var(--ink-soft);
+  font-size: var(--step-0);
+  line-height: 1.68;
+  max-width: 68ch;
+  margin-bottom: var(--sp-md);
 }
-.slide.inline { font-size: var(--step-0); padding: var(--sp-3); }
-.slide h2 { margin-bottom: var(--sp-2); }
-.slide ul { margin: 0 0 var(--sp-2); padding-left: 1.2rem; }
-.slide li { margin-bottom: var(--sp-1); }
-.slide strong { color: var(--accent); font-weight: 600; }
-.slide em { color: var(--text-soft); }
+.slide.inline { padding: var(--sp-md); }
+.slide h2 { color: var(--ink); margin-bottom: var(--sp-sm); }
+.slide ul { margin: 0 0 var(--sp-sm); padding-left: 1.15rem; }
+.slide li { margin-bottom: var(--sp-xs); }
+/* Emphasis is weight and brightness, not light. Prose is inert; amber is for
+   what the learner can act on (The Light Means Live Rule). */
+.slide strong { color: var(--ink); font-weight: 600; }
+.slide em { color: var(--ink); font-style: italic; }
 
+/* A formula is engraved into the slab, not printed on it. */
 .formula {
-  font-family: var(--font-ui);
-  letter-spacing: 0.18em;
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  letter-spacing: 0.14em;
   text-align: center;
-  padding: var(--sp-2);
-  border-radius: var(--radius-sm);
-  background: var(--accent-wash);
-  color: var(--accent);
-  font-weight: 600;
+  padding: var(--sp-md);
+  margin: var(--sp-md) 0;
+  border-radius: var(--r-well);
+  background: var(--stone);
+  box-shadow: var(--pressed-sm);
+  color: var(--ink);
 }
 
-@keyframes rise {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: none; }
-}
-
-/* --- Question ------------------------------------------------------------- */
+/* ── Question ────────────────────────────────────────────────────────────── */
 
 .question {
-  padding: var(--sp-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-raised);
-  backdrop-filter: blur(12px);
-  box-shadow: var(--shadow);
+  padding: var(--sp-lg);
+  border-radius: var(--r-slab);
+  background: var(--stone);
+  box-shadow: var(--raised);
   text-align: center;
-  animation: rise var(--dur) var(--ease) both;
+  animation: settle var(--dur-warm) var(--ease-settle) both;
 }
 
-.prompt { font-family: var(--font-sans); font-size: var(--step-2); margin-bottom: var(--sp-3); }
-.visual { display: flex; justify-content: center; margin-bottom: var(--sp-3); }
+/* The Question Is Display Rule. */
+.prompt {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  line-height: 1.25;
+  margin: 0 auto var(--sp-md);
+  max-width: 24ch;
+  text-wrap: balance;
+}
+
+.visual { display: flex; justify-content: center; margin-bottom: var(--sp-md); }
 
 .choices {
   display: grid;
-  gap: var(--sp-2);
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  margin-top: var(--sp-3);
+  gap: var(--sp-md);
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  margin-top: var(--sp-md);
 }
 
 .choice {
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
+  padding: 18px 20px;
+  border: none;
+  border-radius: var(--r-pebble);
+  background: var(--stone);
+  color: var(--ink);
   font-size: var(--step-0);
-  transition: all var(--dur) var(--ease);
+  box-shadow: var(--raised);
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
 }
-.choice:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-wash); }
-.choice:disabled { cursor: default; opacity: 0.55; }
-.choice.correct { border-color: var(--correct); background: var(--correct-wash); color: var(--correct); opacity: 1; }
-.choice.wrong { border-color: var(--wrong); background: var(--wrong-wash); color: var(--wrong); opacity: 1; }
-.choice.reveal { border-color: var(--correct); color: var(--correct); opacity: 1; }
+.choice:hover:not(:disabled) { color: var(--glow-text); box-shadow: var(--raised), var(--warm); }
+/* Spent choices stop advertising themselves as actionable. */
+.choice:disabled { cursor: default; color: var(--ink-faint); box-shadow: var(--pressed-xs); }
+
+/* Verdict blooms and presses. It never changes the surface color. */
+.choice.correct { color: var(--right); box-shadow: var(--pressed), 0 0 26px var(--right-halo); }
+.choice.wrong { color: var(--wrong); box-shadow: var(--pressed), 0 0 26px var(--wrong-halo); }
+.choice.reveal { color: var(--right); box-shadow: var(--pressed); }
 
 .play {
-  padding: 0.5rem 1.4rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-soft);
+  padding: 12px 26px;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  color: var(--ink-soft);
   font-size: var(--step--1);
-  transition: all var(--dur) var(--ease);
+  box-shadow: var(--raised-sm);
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
 }
-.play:hover { border-color: var(--accent); color: var(--accent); }
-.play-icon { font-size: 1.1em; }
+.play:hover { color: var(--glow-text); box-shadow: var(--raised-sm), var(--warm); }
+.play:active { box-shadow: var(--pressed-sm); }
+.play-icon { font-size: 1.15em; }
 
 .hint {
-  margin: var(--sp-3) 0 0;
-  padding: var(--sp-2);
-  border-radius: var(--radius-sm);
-  background: var(--accent-wash);
-  color: var(--text-soft);
+  margin: var(--sp-md) auto 0;
+  padding: var(--sp-md);
+  max-width: 52ch;
+  border-radius: var(--r-well);
+  background: var(--stone);
+  box-shadow: var(--pressed-sm);
+  color: var(--ink-soft);
   font-size: var(--step--1);
-  animation: rise var(--dur) var(--ease) both;
+  text-align: left;
 }
 
-/* --- Progress ------------------------------------------------------------- */
+/* ── Progress ────────────────────────────────────────────────────────────── */
 
 .progress-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-2);
-  margin-bottom: var(--sp-3);
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-md);
+  flex-wrap: wrap;
 }
-.progress-label { color: var(--text-faint); font-size: var(--step--1); }
+.progress-label { color: var(--ink-faint); font-size: var(--step--1); }
 
-.pips { display: flex; gap: 6px; }
+.pips { display: flex; gap: 9px; }
 .pip {
-  width: 9px; height: 9px;
-  border-radius: 50%;
-  border: 1px solid var(--border-strong);
-  transition: all var(--dur) var(--ease);
+  width: 11px;
+  height: 11px;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  box-shadow: var(--pressed-xs);
+  transition: box-shadow var(--dur-warm) var(--ease-settle), background var(--dur-warm);
 }
-.pip.on { background: var(--accent); border-color: var(--accent); transform: scale(1.12); }
+.pip.on {
+  background: var(--glow);
+  box-shadow: 0 0 10px var(--glow-halo), inset 0 -1px 2px var(--glow-deep);
+}
 
-.drill-status { margin-bottom: var(--sp-3); text-align: center; }
-.drill-status .pips { justify-content: center; }
-.next-rank { color: var(--text-faint); font-size: var(--step--1); margin-bottom: var(--sp-2); }
+.drill-status { margin-bottom: var(--sp-md); text-align: center; }
+.drill-status .pips { justify-content: center; flex-wrap: wrap; }
+.next-rank { color: var(--ink-faint); font-size: var(--step--1); margin-bottom: var(--sp-sm); }
 
-/* --- Ranks (calm register: a mark and a line, no confetti) ---------------- */
+/* ── Rank marks ──────────────────────────────────────────────────────────── */
 
 .rank {
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  font-size: var(--step--1);
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  font-family: var(--font-label);
+  font-size: var(--step-label);
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  border: 1px solid currentColor;
+  white-space: nowrap;
+  color: var(--ink-faint);
+  box-shadow: var(--pressed-sm);
 }
 .rank-iron { color: var(--iron); }
 .rank-bronze { color: var(--bronze); }
 .rank-silver { color: var(--silver); }
-.rank-gold { color: var(--gold); }
+.rank-gold { color: var(--gold); box-shadow: var(--pressed-sm), var(--warm); }
 .rank-platinum { color: var(--platinum); }
 .rank-diamond { color: var(--diamond); }
 
-/* --- Dashboard ------------------------------------------------------------ */
+/* ── Dashboard ───────────────────────────────────────────────────────────── */
 
-.dash-head { margin-bottom: var(--sp-4); }
-.section { margin-bottom: var(--sp-5); }
-.section h2 { margin-bottom: var(--sp-1); }
+.dash-head { margin-bottom: var(--sp-lg); }
+.section { margin-bottom: var(--sp-xl); }
+.section h2 { margin-bottom: var(--sp-xs); }
 
 .tiles {
   display: grid;
-  gap: var(--sp-2);
+  gap: var(--sp-md);
   grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-  margin-top: var(--sp-3);
+  margin-top: var(--sp-md);
 }
 
 .tile {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: var(--sp-xs);
   text-align: left;
-  padding: var(--sp-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  backdrop-filter: blur(12px);
+  padding: var(--sp-md);
+  border: none;
+  border-radius: var(--r-slab);
+  background: var(--stone);
   color: inherit;
-  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  box-shadow: var(--raised);
+  transition: box-shadow var(--dur-warm) var(--ease-settle);
 }
-.tile:hover { transform: translateY(-2px); border-color: var(--border-strong); }
-.tile.review { border-color: var(--accent-soft); background: var(--accent-wash); }
+.tile:hover { box-shadow: var(--raised), var(--warm); }
+.tile:active { box-shadow: var(--pressed); }
+.tile.review { box-shadow: var(--raised), var(--warm); }
+/* Tiles outside the learner's chosen focus sit back rather than competing, so
+   the dashboard is not nine equally-shouting cards. */
+.tile.muted { box-shadow: var(--settled); }
+.tile.muted:hover { box-shadow: var(--raised), var(--warm); }
 
-.tile-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
-.tile-title { font-family: var(--font-sans); font-size: var(--step-1); }
-.tile-blurb { color: var(--text-soft); font-size: var(--step--1); }
+.tile-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-sm); }
+.tile-head .tile-title { min-width: 0; }
+.tile-head .rank { flex: 0 0 auto; }
+.tile-title { font-family: var(--font-display); font-size: var(--step-1); }
+.tile-blurb { color: var(--ink-soft); font-size: var(--step--1); line-height: 1.5; }
 .tile-foot {
-  display: flex; justify-content: space-between; gap: var(--sp-2);
-  margin-top: var(--sp-1);
-  color: var(--text-faint); font-size: var(--step--1);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-xs);
+  color: var(--ink-faint);
+  font-size: var(--step--1);
 }
 .tile-foot em { font-style: normal; white-space: nowrap; }
 
 .banner {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: var(--sp-xs);
   width: 100%;
   text-align: left;
-  padding: var(--sp-3);
-  margin-bottom: var(--sp-4);
-  border: 1px solid var(--accent-soft);
-  border-radius: var(--radius);
-  background: var(--accent-wash);
+  padding: var(--sp-md);
+  margin-bottom: var(--sp-lg);
+  border: none;
+  border-radius: var(--r-slab);
+  background: var(--stone);
   color: inherit;
-  transition: transform var(--dur) var(--ease);
+  box-shadow: var(--raised), var(--warm);
+  transition: box-shadow var(--dur-warm) var(--ease-settle);
 }
-.banner:hover { transform: translateY(-2px); }
-.banner-title { font-family: var(--font-sans); font-size: var(--step-1); color: var(--accent); }
-.banner-detail { color: var(--text-soft); font-size: var(--step--1); }
+.banner:active { box-shadow: var(--pressed); }
+.banner-title { font-family: var(--font-display); font-size: var(--step-1); color: var(--glow-text); }
+.banner-detail { color: var(--ink-soft); font-size: var(--step--1); }
 
-.dash-foot { margin-top: var(--sp-5); text-align: center; }
+.dash-foot { margin-top: var(--sp-xl); text-align: center; }
 
-/* --- Mastered ------------------------------------------------------------- */
+/* ── Mastered ────────────────────────────────────────────────────────────── */
 
-.mastered { text-align: center; padding-top: var(--sp-5); }
-.mastered .lede { margin: var(--sp-2) auto 0; }
+/* The payoff. The one place the whole slab is allowed to warm, and the only
+   place the authored moment runs at full length. */
+.mastered {
+  position: relative;
+  text-align: center;
+  padding: var(--sp-xl) var(--sp-md) var(--sp-xl);
+}
+.mastered::before {
+  content: "";
+  position: absolute;
+  inset: -10% -20% auto;
+  height: 70%;
+  z-index: -1;
+  background: radial-gradient(50% 60% at 50% 40%, var(--glow-halo), transparent 70%);
+  animation: rise-warm 1400ms var(--ease-settle) both;
+}
+.mastered .lede { margin: var(--sp-sm) auto 0; }
+.mastered h1 { color: var(--glow-text); }
+.mastered .pips { justify-content: center; margin-bottom: var(--sp-md); }
 
-/* --- SVG music ------------------------------------------------------------ */
+@keyframes rise-warm {
+  from { opacity: 0; transform: translateY(26px) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
 
-.keyboard { width: min(100%, 300px); height: auto; }
-.key.white { fill: var(--surface-raised); stroke: var(--border-strong); stroke-width: 1; }
-.key.black { fill: #2b2740; stroke: var(--border-strong); stroke-width: 1; }
-.key.on { fill: var(--accent); stroke: var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .mastered::before { animation-duration: 1ms; }
+}
 
-.staff { width: min(100%, 260px); height: auto; }
-.staff-line { stroke: var(--text-faint); stroke-width: 1.1; }
-.notehead { fill: var(--accent); }
-.clef { fill: var(--text); font-size: 44px; font-family: var(--font-sans); }
+/* ── The one authored moment: stone warming, then settling ───────────────── */
 
-@media (max-width: 32rem) {
-  #app { padding: var(--sp-4) var(--sp-2); }
-  .slide, .question { padding: var(--sp-3); }
-  .choices { grid-template-columns: 1fr 1fr; }
+@keyframes settle {
+  from { opacity: 0; transform: translateY(6px) scale(0.995); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── Instruments ─────────────────────────────────────────────────────────── */
+
+/* Both instruments sit in a well cut into the stone. */
+.instrument {
+  display: inline-flex;
+  padding: var(--sp-md) var(--sp-md) calc(var(--sp-md) + 2px);
+  border-radius: var(--r-well);
+  background: var(--stone);
+  box-shadow: var(--pressed);
+}
+
+.keyboard { width: min(100%, 330px); height: auto; }
+/* Keys are faces raised out of the keybed. No strokes: the groove between keys
+   shows the darker floor, and each key catches light on its left edge and lip. */
+.keybed { fill: var(--shade); }
+.key-white { fill: var(--stone); }
+.key-black { fill: var(--shade); }
+.key-edge { stroke: var(--sheen); stroke-width: 1.2; stroke-linecap: round; opacity: 0.5; }
+.key-lip { stroke: var(--sheen); stroke-width: 2; stroke-linecap: round; opacity: 0.75; }
+/* Lit from beneath: the face warms toward its base and blooms under it. */
+.key-lit-face { stroke: var(--glow-edge); stroke-width: 1.2; }
+.lit-top { stop-color: var(--stone); }
+.lit-bottom { stop-color: var(--glow); }
+.key-bloom { fill: var(--glow); opacity: 0.5; }
+
+.staff { width: min(100%, 272px); height: auto; }
+.staff-cut { stroke: var(--shade); stroke-width: 1.5; }
+.staff-lip { stroke: var(--sheen); stroke-width: 1.1; opacity: 0.7; }
+.clef { fill: var(--ink); font-family: var(--font-display); }
+.notehead { fill: var(--glow); }
+.note-bloom { fill: var(--glow); opacity: 0.45; }
+
+@media (max-width: 34rem) {
+  :root {
+    --raised: -4px -4px 9px var(--sheen), 5px 5px 13px var(--shade);
+    --raised-sm: -3px -3px 6px var(--sheen), 3px 3px 8px var(--shade);
+    --settled: -3px -3px 7px var(--sheen), 4px 4px 10px var(--shade);
+    --pressed: inset -3px -3px 8px var(--sheen), inset 4px 4px 10px var(--shade);
+  }
+  #app { padding: var(--sp-lg) var(--sp-md); }
+  .slide, .question { padding: var(--sp-md); }
+  .choices { grid-template-columns: 1fr 1fr; gap: var(--sp-sm); }
+  .prompt { max-width: none; }
 }

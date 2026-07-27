@@ -61,11 +61,12 @@ rather than a lesson.
 The hub after the intro — or immediately, for confident users. Two columns:
 
 **Skill drills** (ranked, timed):
-- Note identity — treble clef
-- Note identity — bass clef
-- Interval recognition — by ear
-- Chord quality — by ear
-- Scale degrees
+- Treble Clef — read noteheads on the treble staff
+- Bass Clef — the same drill, on the bass staff
+- Intervals by Ear — hear two notes, name the distance
+- Chord Quality — major, minor, diminished, augmented, by sound alone
+- Scale Degrees — name any degree without counting up from the tonic
+- Chord Spelling — build a triad from its name, with the right letters
 
 **Lessons** (idea #5): Scales · Chords · Chord Progressions
 

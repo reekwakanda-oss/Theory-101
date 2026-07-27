@@ -20,6 +20,9 @@ const FOCUS_AREAS = [
   { id: 'chords', label: 'Chords & harmony' },
 ];
 
+/** How long the correct-answer feedback holds before the mastery screen takes over. */
+const MASTERY_PAUSE_MS = 820;
+
 const PROFICIENCIES = [
   { id: 'beginner', label: 'Complete beginner', detail: 'Start from note names. Nothing assumed.' },
   { id: 'some', label: 'Some experience', detail: 'I can read a little. Skip to intervals.' },
@@ -185,10 +188,11 @@ export function renderIntro(root, go, { conceptId = null, review = false } = {})
       },
       onResult: ({ correct }) => {
         const result = recordConceptAnswer(concept.id, correct);
-        if (result.streak >= STREAK_TARGET) {
-          teardown();
-          paintMastered();
-        }
+        if (result.streak < STREAK_TARGET) return true;
+        // Let the final answer visibly land before the screen changes - snapping
+        // straight to "mastered" steals the moment it's meant to reward.
+        setTimeout(() => { teardown(); paintMastered(); }, MASTERY_PAUSE_MS);
+        return false;
       },
     });
   }
@@ -197,6 +201,7 @@ export function renderIntro(root, go, { conceptId = null, review = false } = {})
     root.innerHTML = `
       <section class="concept mastered">
         <p class="eyebrow">${review ? 'Reviewed' : `Concept ${index + 1} of ${CONCEPTS.length}`}</p>
+        ${streakPips(STREAK_TARGET, STREAK_TARGET)}
         <h1>${concept.title}</h1>
         <p class="lede">${STREAK_TARGET} in a row. That one's yours.</p>
         <button class="primary" type="button" data-next>
@@ -266,7 +271,8 @@ export function renderDashboard(root, go, { celebrate = false } = {}) {
             const drillProgress = drillState(drill.id);
             const next = nextRankHint(drillProgress.best, drillProgress.times);
             const median = medianTime(drillProgress.times);
-            return `<button class="tile" type="button" data-drill="${drill.id}">
+            return `<button class="tile${focus.has(drill.focus) ? '' : ' muted'}"
+                            type="button" data-drill="${drill.id}">
                       <span class="tile-head">
                         <span class="tile-title">${escapeHtml(drill.title)}</span>
                         ${rankBadge(drillProgress.rank)}
@@ -288,7 +294,8 @@ export function renderDashboard(root, go, { celebrate = false } = {}) {
         <p class="sub">Longer form, each ending in an activity.</p>
         <div class="tiles">
           ${lessons.map((lesson) => `
-            <button class="tile" type="button" data-lesson="${lesson.id}">
+            <button class="tile${focus.has(lesson.focus) ? '' : ' muted'}"
+                    type="button" data-lesson="${lesson.id}">
               <span class="tile-title">${escapeHtml(lesson.title)}</span>
               <span class="tile-blurb">${escapeHtml(lesson.blurb)}</span>
             </button>`).join('')}
@@ -412,9 +419,10 @@ export function renderLesson(root, go, { id }) {
     activeQuiz = createQuiz(root.querySelector('.quiz-slot'), {
       generate: () => lesson.activity.generate(),
       hint: '',
-      header: () => `<div class="progress-row">
+      // No score until there is one - "0 of 0 correct" is noise, not feedback.
+      header: () => (asked === 0 ? '' : `<div class="progress-row">
                        <span class="progress-label">${correct} of ${asked} correct</span>
-                     </div>`,
+                     </div>`),
       onResult: ({ correct: wasCorrect }) => {
         asked += 1;
         if (wasCorrect) correct += 1;

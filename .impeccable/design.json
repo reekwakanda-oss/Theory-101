@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-27T00:00:00.000Z",
+  "title": "Design System: Theory 101",
+  "extensions": {
+    "colorMeta": {
+      "stone": {
+        "role": "neutral",
+        "displayName": "Blue-Hour Stone",
+        "canonical": "#232a3b",
+        "tonalRamp": ["#0d1018", "#161b27", "#1c2231", "#232a3b", "#2b3348", "#3a4460", "#5c6780", "#aeb8ce"]
+      },
+      "glow": {
+        "role": "primary",
+        "displayName": "Candlelight Amber",
+        "canonical": "#f2bd6c",
+        "tonalRamp": ["#3a2a10", "#5c421a", "#8a5a12", "#b98a34", "#c98f3e", "#f2bd6c", "#f8d69f", "#fdefd6"]
+      },
+      "right": {
+        "role": "secondary",
+        "displayName": "Jade Bloom",
+        "canonical": "#79d9ae",
+        "tonalRamp": ["#0d2b1e", "#134030", "#1a6b49", "#237f58", "#3fae82", "#79d9ae", "#a9e9ca", "#dbf6e9"]
+      },
+      "wrong": {
+        "role": "tertiary",
+        "displayName": "Clay Rose",
+        "canonical": "#e88fa1",
+        "tonalRamp": ["#33121b", "#4d1a27", "#a8324c", "#c2506a", "#d66f86", "#e88fa1", "#f2b8c4", "#fae2e8"]
+      },
+      "stone-day": {
+        "role": "neutral",
+        "displayName": "Moonstone Day",
+        "canonical": "#dfe5f0",
+        "tonalRamp": ["#232a3b", "#3a4460", "#565f77", "#8b96b2", "#b8c1d4", "#dfe5f0", "#eef1f8", "#ffffff"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Incised Display", "purpose": "Screen titles and practice prompts. Flared humanist stems read as cut, not printed." },
+      "body": { "displayName": "Workhorse Body", "purpose": "Explanations and choices. System UI face; an Operate surface wants a workhorse." },
+      "label": { "displayName": "Engraved Label", "purpose": "Eyebrows and rank marks only." }
+    },
+    "shadows": [
+      { "name": "raised", "value": "-6px -6px 14px var(--sheen), 8px 8px 20px var(--shade)", "purpose": "Anything the learner can act on: buttons, choices, tiles." },
+      { "name": "pressed", "value": "inset -5px -5px 12px var(--sheen), inset 6px 6px 14px var(--shade)", "purpose": "Containers holding content, selected chips, held controls." },
+      { "name": "settled", "value": "-4px -4px 10px var(--sheen), 5px 6px 14px var(--shade)", "purpose": "Resting state of large reading panels, and of tiles outside the learner's chosen focus." },
+      { "name": "warm", "value": "0 0 24px var(--glow-halo)", "purpose": "The ethereal layer and the single hover treatment. One radius everywhere; always added to a real offset shadow." },
+      { "name": "incised", "value": "1px 1px 2px var(--shade), -1px -1px 1px var(--sheen)", "purpose": "text-shadow. Cuts display-face lettering into the stone using the same shade/sheen pairing as every surface." }
+    ],
+    "motion": [
+      { "name": "ease-settle", "value": "cubic-bezier(0.16, 0.84, 0.28, 1)", "purpose": "Exponential ease-out. The material settling after it is pressed." },
+      { "name": "dur-warm", "value": "240ms", "purpose": "The one authored moment: stone warming under interaction." },
+      { "name": "rise-warm", "value": "1400ms", "purpose": "The payoff only. An amber bloom rising behind the mastery title and settling." }
+    ],
+    "breakpoints": [
+      { "name": "compact", "value": "34rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single forward action on a screen. Light lives in the label, never in a fill.",
+      "html": "<button class=\"ds-btn\">Begin</button>",
+      "css": ".ds-btn { background: var(--stone); color: var(--glow); border: none; border-radius: 999px; padding: 16px 40px; font: 600 1rem 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; letter-spacing: .01em; box-shadow: -6px -6px 14px var(--sheen), 8px 8px 20px var(--shade); transition: box-shadow 240ms cubic-bezier(.16,.84,.28,1), color 240ms; cursor: pointer; } .ds-btn:hover { box-shadow: -6px -6px 14px var(--sheen), 8px 8px 20px var(--shade), 0 0 26px var(--glow-halo); } .ds-btn:focus-visible { outline: 2px solid var(--glow); outline-offset: 4px; } .ds-btn:active { box-shadow: inset -5px -5px 12px var(--sheen), inset 6px 6px 14px var(--shade); color: var(--glow-deep); }"
+    },
+    {
+      "name": "Choice Pebble",
+      "kind": "custom",
+      "refersTo": "choice",
+      "description": "Answer option. On answer it inverts to pressed and blooms its verdict hue rather than filling.",
+      "html": "<button class=\"ds-choice\">Perfect 5th</button><button class=\"ds-choice ds-choice--right\">Major 3rd</button><button class=\"ds-choice ds-choice--wrong\">Tritone</button>",
+      "css": ".ds-choice { background: var(--stone); color: var(--ink); border: none; border-radius: 14px; padding: 18px 20px; margin: 4px; font: 400 1rem 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; box-shadow: -6px -6px 14px var(--sheen), 8px 8px 20px var(--shade); transition: box-shadow 240ms cubic-bezier(.16,.84,.28,1), color 240ms; cursor: pointer; } .ds-choice:hover { color: var(--glow); box-shadow: -6px -6px 14px var(--sheen), 8px 8px 20px var(--shade), 0 0 24px var(--glow-halo); } .ds-choice:focus-visible { outline: 2px solid var(--glow); outline-offset: 3px; } .ds-choice--right { color: var(--right); box-shadow: inset -5px -5px 12px var(--sheen), inset 6px 6px 14px var(--shade), 0 0 26px var(--right-halo); } .ds-choice--wrong { color: var(--wrong); box-shadow: inset -5px -5px 12px var(--sheen), inset 6px 6px 14px var(--shade), 0 0 26px var(--wrong-halo); }"
+    },
+    {
+      "name": "Focus Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Multi-select filter. Selection is felt as depth: the chip presses in and its label warms.",
+      "html": "<button class=\"ds-chip\">Ear training</button><button class=\"ds-chip ds-chip--on\">Scales &amp; keys</button>",
+      "css": ".ds-chip { background: var(--stone); color: var(--ink-soft); border: none; border-radius: 999px; padding: 10px 20px; margin: 4px; font: 400 .92rem 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; box-shadow: -5px -5px 11px var(--sheen), 6px 6px 15px var(--shade); transition: box-shadow 240ms cubic-bezier(.16,.84,.28,1), color 240ms; cursor: pointer; } .ds-chip--on { color: var(--glow); box-shadow: inset -4px -4px 9px var(--sheen), inset 5px 5px 12px var(--shade); } .ds-chip:focus-visible { outline: 2px solid var(--glow); outline-offset: 3px; }"
+    },
+    {
+      "name": "Progress Pips",
+      "kind": "custom",
+      "refersTo": "pips",
+      "description": "Distance to mastery, read as how much of the row is lit. Wells pressed into the stone.",
+      "html": "<div class=\"ds-pips\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i></i></div>",
+      "css": ".ds-pips { display: flex; gap: 9px; } .ds-pips i { width: 11px; height: 11px; border-radius: 999px; background: var(--stone); box-shadow: inset -2px -2px 4px var(--sheen), inset 2px 2px 5px var(--shade); transition: box-shadow 240ms cubic-bezier(.16,.84,.28,1), background 240ms; } .ds-pips i.on { background: var(--glow); box-shadow: 0 0 10px var(--glow-halo), inset 0 -1px 2px var(--glow-deep); }"
+    },
+    {
+      "name": "Rank Mark",
+      "kind": "custom",
+      "refersTo": "rank",
+      "description": "Tier indicator. A pressed well; only the earned tier carries light.",
+      "html": "<span class=\"ds-rank\">Iron</span><span class=\"ds-rank ds-rank--earned\">Gold</span>",
+      "css": ".ds-rank { display: inline-block; background: var(--stone); color: var(--ink-faint); border-radius: 999px; padding: 5px 14px; margin: 4px; font: 600 .74rem 'Segoe UI Variable Small','Segoe UI',system-ui,sans-serif; letter-spacing: .16em; text-transform: uppercase; box-shadow: inset -3px -3px 7px var(--sheen), inset 3px 3px 8px var(--shade); } .ds-rank--earned { color: var(--glow); box-shadow: inset -3px -3px 7px var(--sheen), inset 3px 3px 8px var(--shade), 0 0 18px var(--glow-halo); }"
+    },
+    {
+      "name": "Reading Slab",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Explanation panel. Settled rather than raised, so a slide does not shout as loudly as a button.",
+      "html": "<article class=\"ds-slab\"><h2>Half Steps &amp; Whole Steps</h2><p>A <strong>half step</strong> is the smallest distance in Western music.</p></article>",
+      "css": ".ds-slab { background: var(--stone); color: var(--ink); border-radius: 26px; padding: 34px; box-shadow: -4px -4px 10px var(--sheen), 5px 6px 14px var(--shade); } .ds-slab h2 { font: 400 1.4rem Candara, Optima, 'Gill Sans Nova', sans-serif; margin: 0 0 12px; } .ds-slab p { font: 400 1rem/1.62 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; margin: 0; } .ds-slab strong { color: var(--glow); font-weight: 600; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lit Slab",
+    "overview": "The entire interface is one continuous piece of blue-hour stone. Nothing sits on the page; everything is carved out of it. Panels rise from the surface, wells sink into it, and the only thing that ever changes color is light - a single warm candle-amber that appears exactly where the learner is active and nowhere else.\n\nThis is neumorphism taken at its word. Conventional soft-UI treats extrusion as a skin over ordinary components: grey plastic, dual shadows, done. Here the extrusion is the component vocabulary, and the material is not plastic but a cold translucent stone that glows where it is thin. That glow is the ethereal half of the brief, and it is load-bearing rather than atmospheric.\n\nThe register is deliberately quiet. The product's position is calm over compulsion, so the surface never flashes, never celebrates, never stacks competing signals. What it does instead is warm. Interaction heats the stone; that is the whole emotional vocabulary.",
+    "keyCharacteristics": [
+      "One ground color for every surface - panels are never a different color from the page",
+      "Depth comes only from paired offset shadows, never from borders or fills",
+      "One accent hue (candlelight amber) for live state; the two verdict hues and the six rank tiers are state marks, not palette",
+      "Flared humanist letterforms, cut into the stone with a paired text-shadow",
+      "Dark is the primary rendition; light is the same stone in daylight"
+    ],
+    "rules": [
+      { "name": "The One Material Rule", "body": "Every surface is the same color as the page. A panel that needs its own background color has failed to be carved and must be re-solved with shadow.", "section": "colors" },
+      { "name": "The Light Means Live Rule", "body": "Candlelight amber marks only what is currently active or achieved. If amber appears on something the learner cannot act on or has not earned, it is decoration and must be removed. Emphasis inside prose is weight and brightness, never light.", "section": "colors" },
+      { "name": "The AA Floor Rule", "body": "Soft UI's habit of tonal, low-contrast text is refused outright. Body and secondary text hold at least 4.5:1 against the stone and non-text affordances at least 3:1, in BOTH renditions; the shadow pair carries the softness instead. This is why daylight amber is #8a5a12 rather than a lighter gold.", "section": "colors" },
+      { "name": "The Question Is Display Rule", "body": "The practice prompt is set in the display face at title scale or above. It is the one thing on screen the learner must read, and it outranks the screen title.", "section": "typography" },
+      { "name": "The Cut Letter Rule", "body": "Every display-face string carries the incised text-shadow. Type that sits flat on the stone has not been carved, and the flared stems alone do not do it.", "section": "typography" },
+      { "name": "The Press Inverts Rule", "body": "Active and selected states invert the shadow pair rather than changing color. A pressed thing is genuinely pressed.", "section": "elevation" },
+      { "name": "The Bloom Earns Its Place Rule", "body": "A zero-offset glow on a surface is decoration unless it marks live state: hover, focus, the answered choice, the due-for-review tile. Objects that are themselves light - the lit pip, the lit key, the notehead - are the exception, because a light source has nothing to cast a shadow with.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do carve every new surface from the same stone color and let shadow do the work.",
+      "Do invert the shadow pair for pressed, selected and active states.",
+      "Do hold body and secondary text at 4.5:1 or better, and non-text affordances at 3:1 or better, in both renditions (The AA Floor Rule).",
+      "Do reserve candlelight amber for live or earned state (The Light Means Live Rule).",
+      "Do shrink shadow offsets on small screens so extrusion still reads.",
+      "Do keep instruments (keyboard, staff) in true proportion.",
+      "Do sit non-focus dashboard tiles back on --settled so the page is not nine equally-shouting cards."
+    ],
+    "donts": [
+      "Don't give a panel its own background color or border, or use a gradient to fake elevation. A gradient rendering light passing through the stone is this world's own material and is correct.",
+      "Don't put a zero-offset glow on a surface that isn't live. Objects that are themselves light are exempt.",
+      "Don't reach for the conventional soft-UI grey (#e0e5ec) - the light rendition is a cool moonstone, deliberately not that value.",
+      "Don't add a second accent. Jade and clay rose are verdict state and the six rank tiers are status marks; neither licenses a decorative second hue.",
+      "Don't animate more than the one authored moment (the material warming); scattered hover effects at assorted radii are not this world's motion - use --warm.",
+      "Don't let amber appear on inert prose.",
+      "Don't separate adjacent objects with a stroke. The keyboard's keys are divided by grooves cut to a darker keybed, not by outlines."
+    ]
+  }
+}

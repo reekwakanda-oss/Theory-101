@@ -84,9 +84,13 @@ export function createQuiz(root, opts) {
     root.querySelectorAll('[data-choice]').forEach((el) => { el.disabled = true; });
 
     wrongRun = correct ? 0 : wrongRun + 1;
-    onResult({ correct, seconds, question });
+    const proceed = onResult({ correct, seconds, question });
 
     if (!correct && wrongRun >= wrongForHelp && onHelp) onHelp();
+
+    // Returning false means the caller is taking over the screen (mastery, say).
+    // Without this the runner would advance to a new question underneath them.
+    if (proceed === false) return;
 
     timer = setTimeout(next, correct ? FEEDBACK_MS.correct : FEEDBACK_MS.wrong);
   }
