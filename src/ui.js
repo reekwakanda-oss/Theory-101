@@ -5,7 +5,10 @@
 // grooves. The highlighted key is lit from beneath rather than filled with accent
 // color - see the Keyboard entry in DESIGN.md.
 
-import { LETTERS, diatonicIndex, CLEF_BOTTOM_LINE, pitchClass, pretty } from './theory.js';
+import {
+  LETTERS, diatonicIndex, CLEF_BOTTOM_LINE, pitchClass, pretty,
+  DEGREE_ANCHORS, ordinal, anchorPhrase,
+} from './theory.js';
 
 const WHITE = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 // Black keys sit after the 1st, 2nd, 4th, 5th and 6th white keys.
@@ -141,6 +144,17 @@ export function streakPips(streak, target) {
     `<span class="pip${i < streak ? ' on' : ''}"></span>`
   ).join('');
   return `<div class="pips" aria-label="${streak} of ${target} correct in a row">${pips}</div>`;
+}
+
+/**
+ * The scale-degree anchors as list items. The distances come from
+ * DEGREE_ANCHORS, so the concept slide and the Scales lesson cannot drift
+ * apart; each supplies its own `gloss` map, which is the part that differs.
+ */
+export function anchorList(gloss) {
+  return DEGREE_ANCHORS.map(({ degree, ...anchor }) => `
+    <li><strong>${ordinal(degree)}</strong> — ${anchorPhrase(anchor)}.
+      ${gloss[degree]}</li>`).join('');
 }
 
 export function escapeHtml(text) {

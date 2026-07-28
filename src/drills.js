@@ -7,6 +7,7 @@
 import {
   MAJOR_STEPS, NATURAL_MINOR_STEPS, TRIADS,
   buildScale, buildTriad, intervalByShort, midiOf, pretty, randomOf, choicesWith,
+  ordinal, anchorSummary,
 } from './theory.js';
 
 const NATURALS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
@@ -61,6 +62,7 @@ export const DRILLS = [
     id: 'note-treble',
     title: 'Treble Clef',
     blurb: 'Read noteheads on the treble staff, faster each rank.',
+    hint: 'Treble spaces spell FACE from the bottom up. The lines are E G B D F.',
     focus: 'reading',
     generate: noteDrill('treble', TREBLE_RANGE),
   },
@@ -68,6 +70,7 @@ export const DRILLS = [
     id: 'note-bass',
     title: 'Bass Clef',
     blurb: 'The same reading drill, on the bass staff.',
+    hint: 'Bass lines are G B D F A from the bottom up. The spaces spell A C E G.',
     focus: 'reading',
     generate: noteDrill('bass', BASS_RANGE),
   },
@@ -75,6 +78,7 @@ export const DRILLS = [
     id: 'interval-ear',
     title: 'Intervals by Ear',
     blurb: 'Hear two notes, name the distance. The pool widens as you rank up.',
+    hint: 'Match it to a tune you know. A perfect 5th opens Twinkle Twinkle, a major 3rd opens When the Saints, an octave opens Somewhere Over the Rainbow.',
     focus: 'ear',
     generate(difficulty) {
       const short = randomOf(INTERVAL_POOL[difficulty]);
@@ -96,6 +100,7 @@ export const DRILLS = [
     id: 'chord-ear',
     title: 'Chord Quality',
     blurb: 'Major, minor, diminished, augmented — told apart by sound alone.',
+    hint: 'Two questions, not one. The third only tells you bright (major or augmented) or dark (minor or diminished) — each pair shares it. The fifth decides: settled is plain major or minor, pinched inward is diminished, stretched open and hanging is augmented.',
     focus: 'ear',
     generate(difficulty) {
       const pool = CHORD_POOL[difficulty];
@@ -116,6 +121,7 @@ export const DRILLS = [
     id: 'scale-degrees',
     title: 'Scale Degrees',
     blurb: 'Name any degree of any scale without counting up from the tonic.',
+    hint: `Take the letter first — count letters up from the tonic, never semitones. Then place it from an anchor: ${anchorSummary()}. In minor, drop the 3rd, 6th and 7th a half step.`,
     focus: 'scales',
     generate(difficulty) {
       const tonic = randomOf(SCALE_TONICS[difficulty]);
@@ -125,9 +131,8 @@ export const DRILLS = [
       const degree = 2 + Math.floor(Math.random() * 6);
       const answer = pretty(scale[degree - 1]);
       const pool = SCALE_TONICS[3].flatMap((t) => buildScale(t, steps)).map(pretty);
-      const ordinal = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th'][degree];
       return {
-        prompt: `${ordinal} degree of ${pretty(tonic)} ${isMinor ? 'natural minor' : 'major'}?`,
+        prompt: `${ordinal(degree)} degree of ${pretty(tonic)} ${isMinor ? 'natural minor' : 'major'}?`,
         visual: null,
         choices: choicesWith(answer, [...new Set(pool)]),
         answer,
@@ -139,6 +144,7 @@ export const DRILLS = [
     id: 'chord-spelling',
     title: 'Chord Spelling',
     blurb: 'Build a triad from its name, with the right letters.',
+    hint: 'Letters first: root, skip one, skip one — from C that is always C E G. Then set the semitones: major 4 then 3, minor 3 then 4, diminished 3 then 3, augmented 4 then 4.',
     focus: 'chords',
     generate(difficulty) {
       const roots = SCALE_TONICS[difficulty];

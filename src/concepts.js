@@ -8,12 +8,28 @@ import {
   LETTERS, MAJOR_STEPS, NATURAL_MINOR_STEPS, KEY_SIGNATURES, NOTE_VALUES,
   buildScale, buildTriad, relativeMinor, intervalAbove, intervalByShort,
   pitchClass, midiOf, pretty, dotted, randomOf, choicesWith, TRIADS,
+  ordinal, anchorSummary,
 } from './theory.js';
+import { anchorList } from './ui.js';
 
 const NATURALS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const ENHARMONICS = [
   ['C#', 'Db'], ['D#', 'Eb'], ['F#', 'Gb'], ['G#', 'Ab'], ['A#', 'Bb'],
 ];
+
+/**
+ * Why each anchor is worth remembering. The distances themselves come from
+ * DEGREE_ANCHORS - only the teaching around them is written here, so the
+ * slide, the Scales lesson and the drill hint can never quote different numbers.
+ */
+const SLIDE_GLOSS = {
+  7: `It leans on the tonic; that's why it's called the leading tone.`,
+  6: 'A whole step below the 7th, and the tonic of the relative minor.',
+  5: 'The next key clockwise round the circle of fifths: the 5th of C is G, of G is D, of E♭ is B♭.',
+  4: 'One step the other way round that circle — your tonic is the 5th of your 4th, so the 4th of C is F.',
+  3: 'The degree that makes the scale major.',
+  2: 'The shortest move off home.',
+};
 
 export const CONCEPTS = [
   {
@@ -209,8 +225,24 @@ export const CONCEPTS = [
       <strong>C D E F G A B</strong>. Start anywhere else and you'll need sharps or flats to
       make the pattern fit.</p>
       <p>Each note is a <strong>degree</strong>, numbered 1–7. The 1st is the
-      <strong>tonic</strong> — the note that feels like home.</p>`,
-    hint: 'Count up the scale from the tonic: W-W-H-W-W-W-H. The degree number counts the tonic as 1.',
+      <strong>tonic</strong> — the note that feels like home.</p>
+
+      <p><strong>Naming a degree without counting up to it.</strong> Running the formula from
+      the tonic every time is slow. Two moves replace it.</p>
+
+      <p><strong>First take the letter — it costs nothing.</strong> A scale uses each letter
+      exactly once, in order, so the letter of degree <em>n</em> is just <em>n</em> letters
+      along from the tonic. The 6th of E♭ goes E F G A B <strong>C</strong> — it is
+      <em>some kind of C</em>, and you found that without touching a single semitone. All
+      that's left is whether that C is natural, sharp or flat.</p>
+
+      <p><strong>Then reach for the nearest anchor.</strong> No degree is more than one step
+      from one of these:</p>
+      <ul>${anchorList(SLIDE_GLOSS)}</ul>
+      <p>So the 6th and 7th are found walking <em>down</em> from the tonic, the 2nd and 3rd
+      walking up, and the 4th and 5th are the fifth-relationships you already use to name
+      keys. Nothing is left in the middle to count.</p>`,
+    hint: `Take the letter first — count letters up from the tonic, not semitones. Then place it: ${anchorSummary()}.`,
     generate() {
       const tonics = ['C', 'G', 'D', 'A', 'E', 'F', 'Bb', 'Eb', 'Ab'];
       const tonic = randomOf(tonics);
@@ -218,9 +250,8 @@ export const CONCEPTS = [
       const scale = buildScale(tonic, MAJOR_STEPS);
       const answer = pretty(scale[degree - 1]);
       const pool = tonics.flatMap((t) => buildScale(t, MAJOR_STEPS)).map(pretty);
-      const ordinal = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th'][degree];
       return {
-        prompt: `What is the ${ordinal} degree of ${pretty(tonic)} major?`,
+        prompt: `What is the ${ordinal(degree)} degree of ${pretty(tonic)} major?`,
         visual: null,
         choices: choicesWith(answer, [...new Set(pool)]),
         answer,
@@ -239,8 +270,13 @@ export const CONCEPTS = [
       flattened 3rd is what makes minor sound darker.</p>
       <p>Every major scale has a <strong>relative minor</strong> that uses exactly the same
       notes, starting from the <strong>6th degree</strong>. C major and A minor share all
-      seven notes — only the starting point differs.</p>`,
-    hint: 'The relative minor starts on the 6th degree of the major scale — three semitones below the tonic.',
+      seven notes — only the starting point differs.</p>
+      <p>The degree anchors from the major scale still hold — three of them move. The 2nd,
+      4th and 5th are unchanged. The <strong>3rd</strong> is three half steps above the tonic
+      (and is the tonic of the relative <em>major</em>), the <strong>7th</strong> is a whole
+      step below the tonic rather than a half, and the <strong>6th</strong> is a whole step
+      below that. In A minor: C, G, F.</p>`,
+    hint: 'Relative minor starts on the major scale’s 6th degree, three half steps down. For degrees, use major’s anchors with the 3rd, 6th and 7th each a half step lower.',
     generate() {
       const tonics = ['C', 'G', 'D', 'A', 'E', 'F', 'Bb', 'Eb'];
       const tonic = randomOf(tonics);
@@ -262,9 +298,8 @@ export const CONCEPTS = [
       const scale = buildScale(tonic, NATURAL_MINOR_STEPS);
       const answer = pretty(scale[degree - 1]);
       const pool = tonics.flatMap((t) => buildScale(t, NATURAL_MINOR_STEPS)).map(pretty);
-      const ordinal = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th'][degree];
       return {
-        prompt: `What is the ${ordinal} degree of ${pretty(tonic)} natural minor?`,
+        prompt: `What is the ${ordinal(degree)} degree of ${pretty(tonic)} natural minor?`,
         visual: null,
         choices: choicesWith(answer, [...new Set(pool)]),
         answer,
@@ -341,7 +376,7 @@ export const CONCEPTS = [
       </ul>
       <p>Only the middle note changes between a major and minor triad. One semitone is the
       whole difference between happy and sad.</p>`,
-    hint: 'Major = 4 then 3 semitones. Minor = 3 then 4. The root and fifth stay the same.',
+    hint: 'Major = 4 then 3 semitones, minor = 3 then 4 — both keep a perfect 5th. Diminished stacks 3 and 3, so the 5th shrinks; augmented stacks 4 and 4, so it widens.',
     generate() {
       const roots = ['C', 'D', 'E', 'F', 'G', 'A', 'Bb', 'Eb'];
       const qualities = ['major', 'minor', 'diminished', 'augmented'];

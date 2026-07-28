@@ -54,8 +54,8 @@ output. Progress is per-browser; there is no login and nothing syncs between dev
 
 **Technical constraints**
 - No build step, no framework, no dependencies. Vanilla ES modules served over HTTP.
-- Audio is Web Audio synthesis only — no audio files, no MIDI, no microphone, no
-  pitch detection.
+- Audio is Web Audio synthesis only: a synthesized piano voice, no audio files, no
+  MIDI, no microphone, no pitch detection.
 - Progress persists in `localStorage`. No accounts, no backend.
 - Music theory is derived from semitone arithmetic, never hardcoded lookup tables,
   so enharmonic spelling stays correct by construction.

@@ -47,8 +47,8 @@ asks: what notes are, how they're played, and the types of notes.
 | 4 | Note Types & Duration | Whole, half, quarter, eighth, sixteenth; dots add half again | "How many beats is a dotted half in 4/4?" | optional |
 | 5 | Half Steps & Whole Steps | The atom of Western music: 1 semitone vs 2 | "C → D: half or whole?" | optional |
 | 6 | Intervals | Distance = number + quality (M3, P5, …) | Name it by sight **and by ear** | **required** |
-| 7 | The Major Scale | W-W-H-W-W-W-H, the formula behind everything | "5th degree of E♭ major?" | optional |
-| 8 | Minor Scales | Natural minor + the relative minor relationship | "Relative minor of G major?" | optional |
+| 7 | The Major Scale | W-W-H-W-W-W-H, then how to name a degree *without* running it: letter first, then the nearest anchor | "5th degree of E♭ major?" | optional |
+| 8 | Minor Scales | Natural minor + the relative minor relationship; the same anchors with 3, 6, 7 lowered | "Relative minor of G major?" | optional |
 | 9 | Key Signatures | Order of sharps (F C G D A E B) and flats (B E A D G C F) | "How many sharps in A major?" | optional |
 | 10 | Triads | Stacked thirds: major, minor, diminished, augmented | Spell it, **or hear it and name the quality** | **required** |
 
@@ -71,6 +71,13 @@ The hub after the intro — or immediately, for confident users. Two columns:
 **Lessons** (idea #5): Scales · Chords · Chord Progressions
 
 Each drill tile shows its current rank and what the next rank needs.
+
+Every drill carries a **method hint**, shown after two wrong answers in a row. A drill has
+no slide to reopen, so the hint is the entire failure state — it has to teach the technique,
+not restate the question. Scale Degrees is the reason this exists: its tile promises naming
+a degree *without counting up from the tonic*, which is only a fair promise if the method
+is taught somewhere. It is now taught in concept 7, expanded in the Scales lesson, and
+recalled by the drill hint.
 
 ## 4. Ranks (idea #3)
 
@@ -97,7 +104,7 @@ confetti, streak fires, or XP counters.
 
 Longer-form than intro slides, each ending in an identification activity.
 
-- **Scales** — major, natural minor, relative pairs. Activity: identify a scale by ear or by its notes.
+- **Scales** — major, natural minor, relative pairs, and finding any degree from an anchor rather than by counting. Activity: identify a scale by ear or by its notes.
 - **Chords** — triad qualities, then how they're built from scale degrees. Activity: identify a chord by ear or by its spelling.
 - **Chord progressions** — roman numerals in major (I ii iii IV V vi vii°), and the progressions worth knowing (I–V–vi–IV, ii–V–I, 12-bar blues). Activity: hear a progression, name the numerals.
 
@@ -107,13 +114,14 @@ Longer-form than intro slides, each ending in an identification activity.
 
 **v1 has sound. Playback only.**
 
-- **In:** synthesized tones via the Web Audio API — any note, interval, chord, or
-  progression, melodic or harmonic. No audio files, no asset pipeline.
+- **In:** a synthesized piano voice built with the Web Audio API — any note, interval,
+  chord, or progression, melodic or harmonic. No audio files, no asset pipeline.
 - **Out:** MIDI input, microphone input, pitch detection, full notation rendering.
 
 Concepts 6 and 10 and half the drills are defined by how things *sound* — teaching them
 silently would make this a flashcard app. But MIDI and pitch detection are what turn a
-two-week project into a six-month one. Oscillators split the difference.
+two-week project into a six-month one. A synthesized piano splits the difference: it
+sounds like the instrument the theory is taught on, with nothing to download.
 
 ## Scope boundaries for v1
 

@@ -346,7 +346,9 @@ export function renderDrill(root, go, { id }) {
 
   activeQuiz = createQuiz(root.querySelector('.quiz-slot'), {
     generate: () => drill.generate(difficultyFor(drillState(drill.id).rank)),
-    hint: '',
+    // Drills have no slide to reopen, so the hint is the whole failure state -
+    // it has to teach the method, not just restate the question.
+    hint: drill.hint ?? '',
     // The header repaints with the next question, so don't refresh here - that
     // would wipe the correct/wrong feedback the learner is still looking at.
     onResult: ({ correct, seconds }) => recordDrillAnswer(drill.id, correct, seconds),

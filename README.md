@@ -65,6 +65,13 @@ the explanation reopens beside the question. A wrong answer costs the streak and
 nothing else. No lives, no penalties, no lockout — a gate that won't open is the one
 thing guaranteed to break a calm mood.
 
+**Every drill teaches a method, not a fact.** A drill has no slide to reopen, so its hint
+carries the whole technique. Scale Degrees claims you can name a degree without counting up
+from the tonic — so concept 7 teaches how (take the letter first, then reach for the nearest
+anchor: the 7th sits a half step under the tonic, the 6th three under, the 5th seven above),
+the Scales lesson works it through, and the drill hint recalls it. A drill that asks for a
+shortcut nobody was taught is just a slower quiz.
+
 **Mastery decays.** Concepts re-enter a review queue on a spaced schedule
 (1 → 3 → 7 → 21 days), because a forward-only gate lets you "master" concept 3 and lose
 it by concept 10.
@@ -87,7 +94,11 @@ them at roughly 1.4:1 against the ground and made the staff invisible.
 
 ## Scope
 
-v1 has **playback only** — synthesized tones for any note, interval, chord or
-progression. No MIDI input, no microphone, no pitch detection, no notation rendering
+v1 has **playback only** — a synthesized piano voice for any note, interval, chord or
+progression. It is additive synthesis rather than samples: partials decay at
+different rates, sit slightly sharp of whole multiples (string stiffness), and open
+with a hammer transient. No audio files, so nothing to download and it works offline.
+
+No MIDI input, no microphone, no pitch detection, no notation rendering
 beyond a single notehead. Progress is stored in `localStorage`; there are no accounts
 and no backend.

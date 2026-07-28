@@ -67,6 +67,53 @@ export function buildScale(tonic, steps = MAJOR_STEPS) {
   return scale;
 }
 
+/**
+ * How to reach a scale degree without walking the formula up from the tonic -
+ * the shortcut the Scale Degrees drill promises. `semitones` is signed and
+ * measured from the tonic, so a negative anchor is found by going down.
+ *
+ * These numbers are stated once here and quoted by every surface that teaches
+ * them (the concept slide, the Scales lesson, the drill hint). They were
+ * hand-written in all three and had already drifted apart.
+ *
+ * Ordered as they are taught: down from the tonic first, then the fifths, then
+ * up from the tonic. Only the 3rd, 6th and 7th differ in natural minor, each
+ * sitting a semitone lower.
+ */
+export const DEGREE_ANCHORS = [
+  { degree: 7, semitones: -1, from: 'below the tonic' },
+  { degree: 6, semitones: -3, from: 'below the tonic' },
+  { degree: 5, semitones: 7, from: 'above the tonic' },
+  { degree: 4, semitones: 5, from: 'above the tonic' },
+  { degree: 3, semitones: 4, from: 'above the tonic' },
+  { degree: 2, semitones: 2, from: 'above the tonic' },
+];
+
+const ORDINALS = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th'];
+const COUNTS = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'];
+
+export function ordinal(degree) {
+  return ORDINALS[degree];
+}
+
+/** "a half step below the tonic", "seven half steps above the tonic". */
+export function anchorPhrase({ semitones, from }) {
+  const steps = Math.abs(semitones);
+  return steps === 1 ? `a half step ${from}` : `${COUNTS[steps]} half steps ${from}`;
+}
+
+/**
+ * The same anchors compressed to one line, for hints. Only the first names the
+ * tonic; after that "three below" is unambiguous and repeating it grates.
+ */
+export function anchorSummary(anchors = DEGREE_ANCHORS) {
+  return anchors.map((anchor, i) => {
+    if (i === 0) return `the ${ordinal(anchor.degree)} sits ${anchorPhrase(anchor)}`;
+    const direction = anchor.semitones < 0 ? 'below' : 'above';
+    return `the ${ordinal(anchor.degree)} ${COUNTS[Math.abs(anchor.semitones)]} ${direction}`;
+  }).join(', ');
+}
+
 // --- Intervals --------------------------------------------------------------
 
 export const INTERVALS = [

@@ -5,8 +5,19 @@ import {
   MAJOR_STEPS, NATURAL_MINOR_STEPS, PROGRESSIONS, TRIADS,
   buildScale, buildTriad, diatonicTriads, midiOf, pretty, randomOf, choicesWith,
 } from './theory.js';
+import { anchorList } from './ui.js';
 
 const TONICS = ['C', 'G', 'D', 'A', 'F', 'Bb', 'Eb'];
+
+/** The lesson states the anchors more tersely than the concept slide does. */
+const LESSON_GLOSS = {
+  7: 'The leading tone.',
+  6: `The relative minor's home.`,
+  5: 'The next key clockwise on the circle of fifths.',
+  4: 'The next key anticlockwise; your tonic is the 5th of it.',
+  3: 'The degree that makes the scale major.',
+  2: '',
+};
 
 export const LESSONS = [
   {
@@ -32,6 +43,26 @@ export const LESSONS = [
         <p>Start any major scale on its <strong>6th degree</strong> and you are playing its
         <strong>relative minor</strong> — identical notes, different home. C major and A
         minor are the same seven pitches.</p>`,
+      },
+      {
+        heading: 'Finding a degree without counting',
+        body: `<p>Counting W–W–H–W–W–W–H from the tonic works, but it is far too slow to be
+        useful mid-song. Split the job in two instead.</p>
+        <p><strong>The letter is free.</strong> A scale uses each letter once, in order, so
+        degree <em>n</em> always lands on the letter <em>n</em> along from the tonic. The 6th
+        of E♭ is <em>some kind of C</em> before you have thought about a single semitone.
+        Only the accidental is still open.</p>
+        <p><strong>The accidental comes from an anchor.</strong> Every degree sits within one
+        step of one you already know:</p>
+        <ul>${anchorList(LESSON_GLOSS)}</ul>
+        <p>The top of the scale is reached by walking <em>down</em> from the tonic, the bottom
+        by walking up, and the 4th and 5th come from the same fifth-relationship you use to
+        name keys. The 6th of E♭ is a C, three half steps under E♭ — C natural. Done, without
+        a formula.</p>
+        <p>In natural minor the 2nd, 4th and 5th are identical; the 3rd, 6th and 7th each sit
+        a half step lower. So the 3rd is three half steps <em>above</em> the tonic — the
+        relative major's home — and the 7th is a whole step below the tonic rather than
+        a half.</p>`,
       },
       {
         heading: 'Why spelling matters',
