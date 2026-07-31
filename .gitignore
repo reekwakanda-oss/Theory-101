@@ -1,0 +1,17 @@
+# Real user data. The database holds email addresses and session hashes -
+# committing it would publish both.
+server/data/
+*.db
+*.db-wal
+*.db-shm
+
+# Environment. .env.example is committed; .env never is.
+.env
+.env.*
+!.env.example
+
+node_modules/
+npm-debug.log*
+
+.DS_Store
+Thumbs.db

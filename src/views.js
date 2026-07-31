@@ -12,6 +12,9 @@ import { RANKS, rankAt, nextRankHint, difficultyFor, medianTime } from './ranks.
 import { createQuiz } from './quiz.js';
 import { streakPips, escapeHtml } from './ui.js';
 import { ensureAudio } from './audio.js';
+import { authState, renderSignInButton, signOut } from './auth.js';
+import { syncStatus } from './sync.js';
+import { validateProgress } from './progress-schema.js';
 
 const FOCUS_AREAS = [
   { id: 'reading', label: 'Reading notation' },
@@ -34,6 +37,67 @@ let activeQuiz = null;
 function teardown() {
   activeQuiz?.dispose();
   activeQuiz = null;
+}
+
+/**
+ * The question currently being asked, or null on a screen that isn't asking one.
+ * The tutor panel reads this; nothing else does. Returning null is also how the
+ * panel tells a lesson being read from a lesson activity being answered.
+ */
+export const quizSnapshot = () => activeQuiz?.current() ?? null;
+
+// --- Account ----------------------------------------------------------------
+
+const SYNC_LABEL = {
+  synced: 'Progress saved to your account',
+  saving: 'Saving…',
+  error: 'Offline — saved on this device, will sync later',
+  off: '',
+};
+
+/**
+ * The account strip. Stays quiet by design: signing in is an offer, never a
+ * gate. Nothing in the app is withheld from someone who declines, so this is
+ * one line of text and a button, not a wall.
+ */
+function accountBar() {
+  const { user, configured, error } = authState();
+
+  if (!configured) {
+    return `<div class="account">
+              <span class="account-note">Progress is saved on this device.</span>
+            </div>`;
+  }
+
+  if (!user) {
+    return `<div class="account">
+              <span class="account-note">Sign in to keep your progress on any device.</span>
+              <div class="gsi" data-signin></div>
+              ${error ? `<p class="account-error">${escapeHtml(error)}</p>` : ''}
+            </div>`;
+  }
+
+  const status = syncStatus();
+  return `<div class="account">
+            <span class="account-name">${escapeHtml(user.name ?? user.email ?? 'Signed in')}</span>
+            <span class="sync sync-${status}" title="${escapeHtml(SYNC_LABEL[status] ?? '')}">
+              ${escapeHtml(SYNC_LABEL[status] ?? '')}
+            </span>
+            <button class="link" type="button" data-signout>Sign out</button>
+          </div>`;
+}
+
+/** Google's button has to be drawn by their script, so it happens after paint. */
+function mountAccount(root) {
+  const holder = root.querySelector('[data-signin]');
+  if (holder) {
+    renderSignInButton(holder, {
+      // Whatever was practised before signing in travels with the request and
+      // is merged into the account, rather than being stranded here.
+      collectLocalProgress: () => validateProgress(load()),
+    });
+  }
+  root.querySelector('[data-signout]')?.addEventListener('click', () => signOut());
 }
 
 // --- Welcome (idea #1) ------------------------------------------------------
@@ -77,7 +141,10 @@ export function renderWelcome(root, go) {
         </div>
 
         <button class="primary" type="button" data-begin>Begin</button>
+        ${accountBar()}
       </section>`;
+
+    mountAccount(root);
 
     root.querySelectorAll('[data-prof]').forEach((el) => {
       el.addEventListener('click', () => { proficiency = el.dataset.prof; paint(); });
@@ -303,9 +370,12 @@ export function renderDashboard(root, go, { celebrate = false } = {}) {
       </div>
 
       <footer class="dash-foot">
+        ${accountBar()}
         <button class="link" type="button" data-restart>Start over</button>
       </footer>
     </section>`;
+
+  mountAccount(root);
 
   root.querySelector('[data-continue-intro]')?.addEventListener('click', () => go({ view: 'intro' }));
   root.querySelectorAll('[data-review]').forEach((el) => {

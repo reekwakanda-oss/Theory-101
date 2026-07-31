@@ -27,6 +27,9 @@ body {
   max-width: 58rem;
   margin: 0 auto;
   padding: var(--sp-xl) var(--sp-md);
+  /* Clear the floating rail. env() is 0 on desktop, so this one rule covers the
+     phone's home indicator too and needs no media query. */
+  padding-bottom: calc(var(--sp-xl) + var(--rail) + env(safe-area-inset-bottom, 0px));
 }
 
 /* Display type is cut into the stone, not printed on it. */
@@ -80,7 +83,7 @@ button { font: inherit; cursor: pointer; }
   box-shadow: var(--raised);
   transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
 }
-.primary:hover { box-shadow: var(--raised), var(--warm); }
+.primary:hover,
 .primary:active { box-shadow: var(--pressed); color: var(--glow-deep); }
 
 .link {
@@ -122,9 +125,13 @@ button { font: inherit; cursor: pointer; }
   box-shadow: var(--raised);
   transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
 }
-.card:hover { box-shadow: var(--raised), var(--warm); }
-/* The Press Inverts Rule: selection is felt as depth, not fill. */
-.card.selected { box-shadow: var(--pressed); }
+.card:hover { box-shadow: var(--pressed); }
+/* The Press Inverts Rule: selection is felt as depth, not fill. But hover also
+   presses now, so depth alone can no longer say "chosen" - an already-selected
+   card read as one stuck under the pointer. Selection keeps the depth and adds
+   the warm bloom, which hover never has. The amber title carries the same
+   meaning in colour, so this is never bloom alone. */
+.card.selected { box-shadow: var(--pressed), var(--warm); }
 .card.selected .card-title { color: var(--glow-text); }
 
 .card-title { font-family: var(--font-display); font-size: var(--step-1); }
@@ -142,8 +149,9 @@ button { font: inherit; cursor: pointer; }
   box-shadow: var(--raised-sm);
   transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
 }
-.chip:hover { color: var(--ink); }
-.chip.selected { color: var(--glow-text); box-shadow: var(--pressed-sm); }
+.chip:hover { color: var(--ink); box-shadow: var(--pressed-sm); }
+/* Same split as .card.selected: depth is hover, depth + bloom is chosen. */
+.chip.selected { color: var(--glow-text); box-shadow: var(--pressed-sm), var(--warm); }
 
 /* ── Reading surfaces ────────────────────────────────────────────────────── */
 
@@ -225,7 +233,7 @@ button { font: inherit; cursor: pointer; }
   box-shadow: var(--raised);
   transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
 }
-.choice:hover:not(:disabled) { color: var(--glow-text); box-shadow: var(--raised), var(--warm); }
+.choice:hover:not(:disabled) { color: var(--glow-text); box-shadow: var(--pressed); }
 /* Spent choices stop advertising themselves as actionable. */
 .choice:disabled { cursor: default; color: var(--ink-faint); box-shadow: var(--pressed-xs); }
 
@@ -244,8 +252,8 @@ button { font: inherit; cursor: pointer; }
   box-shadow: var(--raised-sm);
   transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
 }
-.play:hover { color: var(--glow-text); box-shadow: var(--raised-sm), var(--warm); }
-.play:active { box-shadow: var(--pressed-sm); }
+.play:hover,
+.play:active { color: var(--glow-text); box-shadow: var(--pressed-sm); }
 .play-icon { font-size: 1.15em; }
 
 .hint {
@@ -342,13 +350,13 @@ button { font: inherit; cursor: pointer; }
   box-shadow: var(--raised);
   transition: box-shadow var(--dur-warm) var(--ease-settle);
 }
-.tile:hover { box-shadow: var(--raised), var(--warm); }
+.tile:hover,
 .tile:active { box-shadow: var(--pressed); }
 .tile.review { box-shadow: var(--raised), var(--warm); }
 /* Tiles outside the learner's chosen focus sit back rather than competing, so
    the dashboard is not nine equally-shouting cards. */
 .tile.muted { box-shadow: var(--settled); }
-.tile.muted:hover { box-shadow: var(--raised), var(--warm); }
+.tile.muted:hover { box-shadow: var(--pressed); }
 
 .tile-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-sm); }
 .tile-head .tile-title { min-width: 0; }
@@ -380,11 +388,73 @@ button { font: inherit; cursor: pointer; }
   box-shadow: var(--raised), var(--warm);
   transition: box-shadow var(--dur-warm) var(--ease-settle);
 }
+.banner:hover,
 .banner:active { box-shadow: var(--pressed); }
 .banner-title { font-family: var(--font-display); font-size: var(--step-1); color: var(--glow-text); }
 .banner-detail { color: var(--ink-soft); font-size: var(--step--1); }
 
-.dash-foot { margin-top: var(--sp-xl); text-align: center; }
+/* Two unrelated things live here: an offer (the account shelf) and the one
+   destructive escape hatch. They were touching edge to edge, which grouped them
+   by proximity and made "Start over" read as part of signing in. The gap is
+   what separates them - no divider, nothing added. */
+.dash-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-lg);
+  margin-top: var(--sp-xl);
+  text-align: center;
+}
+/* The shelf carries its own top margin for the welcome screen, where it is the
+   last thing on the page. Inside this footer the gap owns the rhythm. */
+.dash-foot .account { margin-top: 0; }
+
+/* ── Account ─────────────────────────────────────────────────────────────── */
+
+/* Signing in is an offer, not a gate, so the strip sits at the calm end of the
+   register: a settled shelf, no lift, nothing competing with the work above. */
+.account {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+  margin: var(--sp-lg) auto 0;
+  padding: var(--sp-md);
+  max-width: 46ch;
+  border-radius: var(--r-well);
+  background: var(--stone);
+  box-shadow: var(--settled);
+}
+
+.account-note,
+.account-name {
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+}
+.account-name { color: var(--ink); font-weight: 600; }
+
+/* Google renders its own button into here; it brings its own styling, so this
+   only reserves the space and keeps it centred. */
+.gsi { display: flex; justify-content: center; min-height: 40px; width: 100%; }
+
+.sync {
+  flex-basis: 100%;
+  color: var(--ink-faint);
+  font-size: var(--step-label);
+  text-align: center;
+}
+/* Saving is transient and unremarkable; only a real failure earns attention,
+   and even then it says the work is safe (The Light Means Live Rule). */
+.sync-error { color: var(--glow-text); }
+
+.account-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--glow-text);
+  font-size: var(--step--1);
+  text-align: center;
+}
 
 /* ── Mastered ────────────────────────────────────────────────────────────── */
 
@@ -462,6 +532,460 @@ button { font: inherit; cursor: pointer; }
 .notehead { fill: var(--glow); }
 .note-bloom { fill: var(--glow); opacity: 0.45; }
 
+/* ── Tutor ───────────────────────────────────────────────────────────────── */
+
+/* Screen-reader-only text. Used for the ask-again announcement and the input
+   label, neither of which should occupy space. */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The toggle sits in the .play vocabulary: a small pill, quiet at rest. It is
+   genuinely actionable, so amber on hover is right (The Light Means Live Rule),
+   and hover presses in like every other control. */
+.tutor-toggle {
+  position: fixed;
+  right: var(--sp-md);
+  bottom: var(--sp-md);
+  z-index: 20;
+  padding: 12px 22px;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+  box-shadow: var(--raised-sm);
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
+}
+.tutor-toggle:hover,
+.tutor-toggle:active { box-shadow: var(--pressed-sm); color: var(--glow-text); }
+
+/* One material: the panel is the same stone as the page, lifted off it by
+   shadow rather than set apart by colour. It overlays rather than reflowing -
+   sliding the question sideways while someone is mid-answer would be worse
+   than covering part of the page they chose to cover. */
+.tutor {
+  position: fixed;
+  top: 0; right: 0;
+  z-index: 21;
+  display: flex;
+  flex-direction: column;
+  width: min(24rem, 100vw);
+  height: 100dvh;
+  padding: var(--sp-md);
+  background: var(--stone);
+  box-shadow: -8px 0 24px var(--shade), inset 1px 0 0 var(--sheen);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform var(--dur-warm) var(--ease-settle), visibility var(--dur-warm);
+}
+.tutor.open { transform: translateX(0); visibility: visible; }
+
+.tutor-head { flex: 0 0 auto; position: relative; margin-bottom: var(--sp-sm); }
+.tutor-head h2 { font-size: var(--step-1); }
+
+.tutor-close {
+  position: absolute;
+  top: -4px; right: 0;
+  width: 34px; height: 34px;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  box-shadow: var(--raised-sm);
+  color: var(--ink-soft);
+  font-size: var(--step-1);
+  line-height: 1;
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
+}
+.tutor-close:hover,
+.tutor-close:active { box-shadow: var(--pressed-sm); color: var(--glow-text); }
+.tutor-where { color: var(--ink-faint); font-size: var(--step-label); margin-top: 2px; }
+
+.tutor-thread {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  padding: var(--sp-sm) 0;
+}
+
+.tutor-empty { color: var(--ink-faint); font-size: var(--step--1); line-height: 1.6; }
+
+/* No chat bubbles. What the learner says is pressed into the stone; what the
+   tutor says sits on a shelf above it. */
+.tutor-turn {
+  padding: var(--sp-sm) var(--sp-md);
+  border-radius: var(--r-well);
+  background: var(--stone);
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+  line-height: 1.6;
+}
+.tutor-user { box-shadow: var(--pressed-xs); color: var(--ink); }
+.tutor-assistant { box-shadow: var(--settled); }
+.tutor-error { box-shadow: var(--pressed-xs); color: var(--glow-text); }
+.tutor-waiting { color: var(--ink-faint); box-shadow: none; padding-left: 0; }
+
+.tutor-form { flex: 0 0 auto; }
+.tutor-form textarea {
+  width: 100%;
+  padding: var(--sp-sm) var(--sp-md);
+  border: none;
+  border-radius: var(--r-well);
+  background: var(--stone);
+  box-shadow: var(--pressed-sm);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--step--1);
+  resize: none;
+}
+
+.tutor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-sm);
+}
+.tutor-budget { color: var(--ink-faint); font-size: var(--step-label); }
+
+.tutor-send {
+  padding: 10px 24px;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  color: var(--glow-text);
+  font-weight: 600;
+  font-size: var(--step--1);
+  box-shadow: var(--raised-sm);
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
+}
+.tutor-send:hover:not(:disabled),
+.tutor-send:active:not(:disabled) { box-shadow: var(--pressed-sm); color: var(--glow-deep); }
+/* Spent, exactly like an answered choice. No amber while waiting - amber means
+   this thing is live right now. */
+.tutor-send:disabled { cursor: default; color: var(--ink-faint); box-shadow: var(--pressed-xs); }
+
+.tutor-signin { color: var(--ink-soft); font-size: var(--step--1); line-height: 1.6; }
+/* Points at the account strip rather than drawing a second Google button - see
+   the note at the top of src/assistant.js for why that matters. */
+.tutor-signin-where { margin-top: var(--sp-sm); color: var(--ink-faint); font-size: var(--step-label); }
+
+/* The one-time hello. A bubble beside the toggle, never a modal - nothing to
+   dismiss before you can carry on. */
+.tutor-bubble {
+  position: fixed;
+  right: var(--sp-md);
+  bottom: calc(var(--sp-md) + 56px);
+  z-index: 20;
+  max-width: 20rem;
+  padding: var(--sp-md);
+  border-radius: var(--r-well);
+  background: var(--stone);
+  box-shadow: var(--raised), var(--warm);
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+  line-height: 1.6;
+  animation: settle var(--dur-warm) var(--ease-settle) both;
+}
+.tutor-bubble button {
+  margin-top: var(--sp-sm);
+  padding: 6px 16px;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  box-shadow: var(--raised-sm);
+  color: var(--glow-text);
+  font-size: var(--step-label);
+}
+.tutor-bubble button:hover { box-shadow: var(--pressed-sm); }
+
+/* ── Stone & light ───────────────────────────────────────────────────────────
+   The material picker. Mirrors the tutor across the page: the tutor answers on
+   the right, the material is chosen on the left.
+
+   The swatches are the one place in the app where a surface carries a colour
+   that is not the page's, and that is deliberate. A swatch is a SAMPLE - it is
+   showing you a material, the way a notehead shows you a pitch - so it is
+   content, not chrome. Everything else here obeys the one-material rule. */
+
+.theme-toggle {
+  position: fixed;
+  left: var(--sp-md);
+  bottom: var(--sp-md);
+  z-index: 20;
+  padding: 12px 22px;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+  box-shadow: var(--raised-sm);
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
+}
+.theme-toggle:hover,
+.theme-toggle:active { box-shadow: var(--pressed-sm); color: var(--glow-text); }
+
+.theme {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 21;
+  display: flex;
+  flex-direction: column;
+  width: min(21rem, 100vw);
+  height: 100dvh;
+  padding: var(--sp-md);
+  background: var(--stone);
+  /* The mirror of the tutor's edge: shadow falls to the right, the sheen lip
+     catches on the inner edge. */
+  box-shadow: 8px 0 24px var(--shade), inset -1px 0 0 var(--sheen);
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition: transform var(--dur-warm) var(--ease-settle), visibility var(--dur-warm);
+}
+.theme.open { transform: translateX(0); visibility: visible; }
+
+.theme-head { flex: 0 0 auto; position: relative; margin-bottom: var(--sp-md); }
+.theme-head h2 { font-size: var(--step-1); }
+.theme-lede {
+  margin: var(--sp-xs) 0 0;
+  color: var(--ink-faint);
+  font-size: var(--step-label);
+  line-height: 1.55;
+  max-width: 30ch;
+}
+
+.theme-close {
+  position: absolute;
+  top: -4px; right: 0;
+  width: 34px; height: 34px;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  box-shadow: var(--raised-sm);
+  color: var(--ink-soft);
+  font-size: var(--step-1);
+  line-height: 1;
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
+}
+.theme-close:hover,
+.theme-close:active { box-shadow: var(--pressed-sm); color: var(--glow-text); }
+
+.theme-scroll { flex: 1 1 auto; overflow-y: auto; }
+.theme-group { margin-bottom: var(--sp-lg); }
+
+.theme-label {
+  font-family: var(--font-label);
+  font-size: var(--step-label);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 var(--sp-sm);
+}
+
+/* --- The materials -------------------------------------------------------- */
+
+.theme-stones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-sm);
+}
+
+/* Carved from the stone it offers, using that stone's OWN derived sheen and
+   shade. What you see is the relief you would get, not a colour chip. */
+.stone-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-xs);
+  padding: var(--sp-sm) var(--sp-md);
+  border: none;
+  border-radius: var(--r-pebble);
+  background: var(--sw-stone);
+  color: var(--sw-ink);
+  text-align: left;
+  transition: box-shadow var(--dur-warm) var(--ease-settle);
+  box-shadow: -4px -4px 9px var(--sw-sheen), 5px 5px 12px var(--sw-shade);
+}
+/* Hover presses, like every other control in the app. */
+.stone-swatch:hover {
+  box-shadow: inset -3px -3px 7px var(--sw-sheen), inset 3px 3px 8px var(--sw-shade);
+}
+/* Chosen presses AND blooms. Depth alone cannot say "chosen" here, because
+   hover uses depth too - the same split that keeps .card.selected apart from
+   .card:hover. */
+.stone-swatch[aria-checked="true"] {
+  box-shadow: inset -3px -3px 7px var(--sw-sheen), inset 3px 3px 8px var(--sw-shade),
+              0 0 20px var(--sw-halo);
+}
+
+/* The current light, burning in that material. */
+/* Held at its LIT size and scaled down at rest, rather than grown on selection.
+   The pip is the first child of a flex column, so animating its height moved the
+   name below it and made the whole grid row taller - selecting a material
+   visibly resized the one beside it. transform leaves layout alone. */
+.stone-swatch-pip {
+  width: 14px; height: 14px;
+  border-radius: var(--r-full);
+  background: var(--sw-glow);
+  box-shadow: 0 0 9px var(--sw-halo);
+  transform: scale(0.64);
+  transition: transform var(--dur-warm) var(--ease-settle);
+}
+/* The chosen material burns wider, the same way the chosen light does. Bloom
+   and depth both go quiet on a dark material against a dark panel; a change in
+   size does not, and it works without seeing hue at all. */
+.stone-swatch[aria-checked="true"] .stone-swatch-pip { transform: scale(1); }
+.stone-swatch-name { font-size: var(--step-label); line-height: 1.2; }
+
+/* --- The lights ----------------------------------------------------------- */
+
+.theme-lights { display: flex; gap: var(--sp-sm); }
+
+.light-pip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-xs);
+  flex: 1;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  font-size: var(--step-label);
+  transition: color var(--dur-warm);
+}
+
+/* A pip is a well in the CURRENT stone with the candidate light lit inside it -
+   the progress-pip vocabulary exactly, because a lit pip is already how this
+   world draws "light lives here". */
+.light-pip-well {
+  display: grid;
+  place-items: center;
+  width: 34px; height: 34px;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  box-shadow: var(--pressed-xs);
+  transition: box-shadow var(--dur-warm) var(--ease-settle);
+}
+/* Same treatment as the material pip: lit size, scaled down at rest. */
+.light-pip-well::after {
+  content: "";
+  width: 20px; height: 20px;
+  border-radius: var(--r-full);
+  background: var(--sw-glow);
+  box-shadow: 0 0 10px var(--sw-halo);
+  transform: scale(0.65);
+  transition: transform var(--dur-warm) var(--ease-settle);
+}
+.light-pip:hover .light-pip-well { box-shadow: var(--pressed-sm); }
+.light-pip[aria-checked="true"] { color: var(--ink); }
+.light-pip[aria-checked="true"] .light-pip-well { box-shadow: var(--pressed-sm); }
+/* The chosen light burns wider. Never colour alone: the name goes to full ink
+   and the flame grows, so the choice reads without seeing hue at all. */
+.light-pip[aria-checked="true"] .light-pip-well::after { transform: scale(1); }
+
+/* --- Cut your own --------------------------------------------------------- */
+
+.theme-custom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-md);
+  padding: var(--sp-xs) var(--sp-sm) var(--sp-xs) var(--sp-md);
+  border-radius: var(--r-full);
+  box-shadow: var(--pressed-xs);
+  color: var(--ink-faint);
+  font-size: var(--step-label);
+  cursor: pointer;
+}
+/* The input itself is clipped to a pebble, so the ring has to live on the
+   label or it would be cut off by the overflow. */
+.theme-custom:has(:focus-visible) {
+  outline: 2px solid var(--glow);
+  outline-offset: 4px;
+}
+/* A well with the sample set into it, sized to match a light pip. The groove
+   matters: the sample is often close to the panel's own colour - it IS the
+   current material - and a raised chip in that case reads as nothing at all. */
+.theme-custom-chip {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 34px; height: 34px;
+  padding: 5px;
+  border-radius: var(--r-full);
+  box-shadow: var(--pressed-xs);
+}
+.theme-custom-face {
+  position: relative;
+  overflow: hidden;
+  width: 24px; height: 24px;
+  border-radius: var(--r-full);
+  box-shadow: var(--raised-sm);
+}
+/* Oversized and pulled back so the native swatch fills the pebble edge to edge
+   instead of sitting in the browser's own bordered box. */
+.theme-custom-face input[type="color"] {
+  width: 200%; height: 200%;
+  margin: -50%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.theme-custom-face input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+.theme-custom-face input[type="color"]::-webkit-color-swatch { border: none; }
+.theme-custom-face input[type="color"]::-moz-color-swatch { border: none; }
+
+/* --- What the choice actually looks like ---------------------------------- */
+
+.theme-preview { margin-bottom: var(--sp-md); }
+/* The real staff component, at panel scale. */
+.theme-preview .staff { width: 100%; max-width: 15rem; margin-bottom: var(--sp-sm); }
+.theme-preview-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  flex-wrap: wrap;
+}
+.theme-verdict {
+  padding: 4px 12px;
+  border-radius: var(--r-full);
+  font-size: var(--step-label);
+  box-shadow: var(--pressed-xs);
+}
+.theme-right { color: var(--right); }
+.theme-wrong { color: var(--wrong); }
+
+.theme-note {
+  margin: 0 0 var(--sp-md);
+  color: var(--ink-faint);
+  font-size: var(--step-label);
+  line-height: 1.55;
+  min-height: 3.1em; /* holds its place, so the reset button never jumps */
+}
+
+.theme-reset {
+  padding: 8px 18px;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--stone);
+  color: var(--glow-text);
+  font-size: var(--step-label);
+  box-shadow: var(--raised-sm);
+  transition: box-shadow var(--dur-warm) var(--ease-settle), color var(--dur-warm);
+}
+.theme-reset:hover { box-shadow: var(--pressed-sm); color: var(--glow-deep); }
+
 @media (max-width: 34rem) {
   :root {
     --raised: -4px -4px 9px var(--sheen), 5px 5px 13px var(--shade);
@@ -469,8 +993,25 @@ button { font: inherit; cursor: pointer; }
     --settled: -3px -3px 7px var(--sheen), 4px 4px 10px var(--shade);
     --pressed: inset -3px -3px 8px var(--sheen), inset 4px 4px 10px var(--shade);
   }
-  #app { padding: var(--sp-lg) var(--sp-md); }
+  /* The shorthand resets padding-bottom, so the rail clearance has to be
+     restated here or the footer lands back in the pills' band on a phone. */
+  #app {
+    padding: var(--sp-lg) var(--sp-md);
+    padding-bottom: calc(var(--sp-lg) + var(--rail) + env(safe-area-inset-bottom, 0px));
+  }
   .slide, .question { padding: var(--sp-md); }
   .choices { grid-template-columns: 1fr 1fr; gap: var(--sp-sm); }
   .prompt { max-width: none; }
+  /* Full-bleed sheet on a phone; 100dvh above already handles the URL bar. */
+  .tutor { width: 100vw; }
+  .tutor-toggle { bottom: calc(var(--sp-md) + env(safe-area-inset-bottom, 0px)); }
+  .tutor-bubble { bottom: calc(var(--sp-md) + 56px + env(safe-area-inset-bottom, 0px)); }
+  .theme { width: 100vw; }
+  /* Two pills share the bottom edge here, so this one gives up its padding
+     rather than let the pair collide at 320px. */
+  .theme-toggle {
+    bottom: calc(var(--sp-md) + env(safe-area-inset-bottom, 0px));
+    left: var(--sp-sm);
+    padding: 12px 16px;
+  }
 }

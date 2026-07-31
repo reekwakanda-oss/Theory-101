@@ -1,4 +1,9 @@
-// Progress persistence. localStorage only - no accounts, no backend in v1.
+// Progress persistence.
+//
+// localStorage is the working copy and stays authoritative for the running
+// app, so every read here is synchronous and the whole app keeps functioning
+// with no server, no account and no network. When someone is signed in,
+// src/sync.js mirrors this to their account in the background.
 
 const KEY = 'theory101.progress.v1';
 
@@ -13,6 +18,14 @@ const EMPTY = {
 };
 
 let cache = null;
+
+/** Notified after every write, so the sync layer can mirror it to the account. */
+const listeners = new Set();
+
+export function subscribe(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
 
 export function load() {
   if (cache) return cache;
@@ -31,6 +44,22 @@ export function save(next) {
     localStorage.setItem(KEY, JSON.stringify(cache));
   } catch {
     // Private browsing or quota exhausted. Progress stays in memory for the session.
+  }
+  for (const fn of listeners) fn(cache);
+  return cache;
+}
+
+/**
+ * Install a whole record, used after merging an account's progress in.
+ * Deliberately does not notify listeners: the sync layer is the only caller,
+ * and it would otherwise immediately push back what it just pulled.
+ */
+export function replaceAll(state) {
+  cache = { ...structuredClone(EMPTY), ...state };
+  try {
+    localStorage.setItem(KEY, JSON.stringify(cache));
+  } catch {
+    /* ignore */
   }
   return cache;
 }

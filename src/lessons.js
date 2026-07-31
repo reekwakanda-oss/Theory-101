@@ -3,7 +3,7 @@
 
 import {
   MAJOR_STEPS, NATURAL_MINOR_STEPS, PROGRESSIONS, TRIADS,
-  buildScale, buildTriad, diatonicTriads, midiOf, pretty, randomOf, choicesWith,
+  buildScale, buildTriad, diatonicTriads, midiOf, ascendingFrom, pretty, randomOf, choicesWith,
 } from './theory.js';
 import { anchorList } from './ui.js';
 
@@ -84,7 +84,7 @@ export const LESSONS = [
           visual: null,
           choices: ['Major', 'Natural minor'],
           answer,
-          play: { midis: scale.map((n) => midiOf(n, 4)).concat(midiOf(tonic, 5)), mode: 'melodic', gap: 0.3 },
+          play: { midis: ascendingFrom([...scale, tonic]), mode: 'melodic', gap: 0.3 },
           autoPlay: true,
         };
       },

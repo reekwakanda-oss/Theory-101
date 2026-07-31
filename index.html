@@ -11,6 +11,10 @@
   <body>
     <div class="roomlight" aria-hidden="true"></div>
     <main id="app"></main>
+    <!-- Outside #app on purpose: every screen replaces #app wholeheartedly, so
+         anything mounted inside would be destroyed on each navigation. -->
+    <div id="tutor-root"></div>
+    <div id="theme-root"></div>
     <script type="module" src="src/main.js"></script>
   </body>
 </html>

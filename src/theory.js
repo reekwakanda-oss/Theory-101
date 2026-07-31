@@ -34,6 +34,34 @@ export function freqOf(midi) {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
+/**
+ * Turn note names into MIDI numbers that genuinely rise.
+ *
+ * Octave numbers restart at C, so pinning a scale to one octave makes it fall
+ * apart the moment it crosses B: G major written into octave 4 sounds
+ * G A B then C a seventh BELOW the tonic, not above it. The scale doubles back
+ * on itself instead of ascending.
+ *
+ * Each note is lifted into whichever octave keeps it above the one before, so
+ * an ascending line stays ascending however it is spelled. Repeating the tonic
+ * at the end lands it an octave up, which is what closes a scale.
+ */
+export function ascendingFrom(notes, octave = 4) {
+  let previous = -Infinity;
+  let current = octave;
+  return notes.map((note) => {
+    let midi = midiOf(note, current);
+    // A step of a semitone can still need a new octave (B -> C), and an
+    // enharmonic spelling can need two (B# -> Cb), so loop rather than test once.
+    while (midi <= previous) {
+      current += 1;
+      midi = midiOf(note, current);
+    }
+    previous = midi;
+    return midi;
+  });
+}
+
 /** Spell a pitch class using a specific letter, choosing the fewest accidentals. */
 export function spellAs(letter, pc) {
   let diff = (((pc - LETTER_SEMITONES[letter]) % 12) + 12) % 12;

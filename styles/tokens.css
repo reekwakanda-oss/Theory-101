@@ -94,6 +94,13 @@
   --step-2: clamp(1.4rem, 1.24rem + 0.8vw, 1.9rem);
   --step-3: clamp(2rem, 1.6rem + 2vw, 3.25rem);
 
+  /* The floating rail: "Stone & light" and "Ask the tutor" are fixed to the
+     bottom corners of every screen. Page content has to clear that band or it
+     ends up level with them - which is how "Start over" came to sit in line
+     with both pills. One value, so the clearance and the pills cannot drift:
+     --sp-md of offset plus the pill's own height. */
+  --rail: 4.2rem;
+
   /* Space */
   --sp-xs: 6px;
   --sp-sm: 12px;
@@ -143,7 +150,11 @@
   --incised: 0 -1px 0 var(--sheen), 0 1px 2px var(--shade);
 
   --glow: #f2bd6c;       /*  8.4:1 */
-  --glow-deep: #c98f3e;
+  /* Was #c98f3e, which reads 5.1:1 on the flat stone but only 4.49:1 once
+     .roomlight washes the ground with --sheen - just under AA at the top of the
+     page. Raised to the value theme.js derives for this material, so the
+     hand-tuned rendition and every generated one now agree. */
+  --glow-deep: #e39a2c;  /*  6.1:1 flat, 5.4:1 lit */
   --glow-halo: rgba(242, 189, 108, 0.30);
   --glow-edge: rgba(242, 189, 108, 0.55);
 

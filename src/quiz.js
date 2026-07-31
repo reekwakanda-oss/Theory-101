@@ -11,6 +11,45 @@ import { renderVisual, escapeHtml } from './ui.js';
 const FEEDBACK_MS = { correct: 620, wrong: 1500 };
 
 /**
+ * How many times to redraw before accepting a repeat. Some pools are genuinely
+ * small - the treble drill at Iron has five notes in it - so an unlucky run of
+ * repeats is normal and looping until the draw differs would hang the app.
+ */
+const MAX_REDRAWS = 12;
+
+/**
+ * What makes two questions "the same" to a learner.
+ *
+ * The prompt alone is not enough: every question in the note drills reads
+ * "Name the note.", and it is the notehead that differs. The ear drills go
+ * further - "Name the chord quality you hear." with the answer "Major" covers
+ * every major triad there is, and what actually distinguishes them is the
+ * pitches. For a question asked in sound, the sound is the question.
+ */
+function signatureOf(question) {
+  return JSON.stringify([
+    question.prompt,
+    question.answer,
+    question.visual ?? null,
+    question.play?.midis ?? null,
+    question.playSequence ?? null,
+  ]);
+}
+
+/**
+ * Draw a question that isn't the one just asked. Generators pick at random and
+ * have no memory, so back-to-back duplicates happen often enough to feel like
+ * a bug - it reads as the app being stuck rather than as chance.
+ */
+function drawUnlike(generate, lastSignature) {
+  let question = generate();
+  for (let i = 0; i < MAX_REDRAWS && signatureOf(question) === lastSignature; i++) {
+    question = generate();
+  }
+  return question;
+}
+
+/**
  * @param {HTMLElement} root      where to render
  * @param {object} opts
  *   generate()                   -> question
@@ -27,6 +66,7 @@ export function createQuiz(root, opts) {
   } = opts;
 
   let question = null;
+  let lastSignature = null;
   let askedAt = 0;
   let wrongRun = 0;
   let locked = false;
@@ -97,7 +137,8 @@ export function createQuiz(root, opts) {
 
   function next() {
     if (disposed) return;
-    question = generate();
+    question = drawUnlike(generate, lastSignature);
+    lastSignature = signatureOf(question);
     askedAt = performance.now();
     locked = false;
     render();
@@ -110,5 +151,21 @@ export function createQuiz(root, opts) {
   }
 
   next();
-  return { dispose, replay: playCurrent, refresh: render };
+  return {
+    dispose,
+    replay: playCurrent,
+    refresh: render,
+    /**
+     * What is on screen right now, for the tutor panel to read when the learner
+     * asks it something. Pulled rather than pushed: read at the moment of the
+     * question it can never be stale, and it costs nothing while the panel is
+     * closed. Nothing else in the app uses this.
+     */
+    current: () => (disposed || !question ? null : {
+      question,
+      wrongRun,
+      hint,
+      hintShown: wrongRun >= wrongForHint && Boolean(hint),
+    }),
+  };
 }

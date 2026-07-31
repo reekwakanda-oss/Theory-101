@@ -6,7 +6,7 @@
 
 import {
   MAJOR_STEPS, NATURAL_MINOR_STEPS, TRIADS,
-  buildScale, buildTriad, intervalByShort, midiOf, pretty, randomOf, choicesWith,
+  buildScale, buildTriad, intervalByShort, midiOf, ascendingFrom, pretty, randomOf, choicesWith,
   ordinal, anchorSummary,
 } from './theory.js';
 
@@ -136,7 +136,7 @@ export const DRILLS = [
         visual: null,
         choices: choicesWith(answer, [...new Set(pool)]),
         answer,
-        play: { midis: scale.map((n) => midiOf(n, 4)), mode: 'melodic', gap: 0.3 },
+        play: { midis: ascendingFrom(scale), mode: 'melodic', gap: 0.3 },
       };
     },
   },

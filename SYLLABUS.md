@@ -127,7 +127,13 @@ sounds like the instrument the theory is taught on, with nothing to download.
 
 Written down rather than discovered mid-build:
 
-- No accounts, no backend. Progress lives in `localStorage`.
+- ~~No accounts, no backend. Progress lives in `localStorage`.~~
+  **Revised.** Optional Google sign-in was added so progress survives a lost
+  device and follows a learner between them. The boundary that replaced it:
+  `localStorage` stays authoritative for the running app, so accounts are
+  strictly additive — nothing is gated behind signing in, nothing blocks on the
+  network, and the app still runs on a static host with no server at all. See
+  [SECURITY.md](SECURITY.md).
 - No sight-reading beyond naming a single notehead.
 - No modes, no seventh chords, no inversions, no harmonic/melodic minor.
 - Rhythm is taught (concept 4) but not tapped — no rhythm input.

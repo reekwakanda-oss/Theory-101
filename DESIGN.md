@@ -127,6 +127,12 @@ appear only on answer feedback, and one token reserved for notation.
   A lighter gold measured 2.18:1 on the pale stone, failing the 3:1 floor for the
   focus ring, the pips and the lit key — hence the deep amber in daylight.
 
+  Candlelight is now the **default** light rather than the only one: the learner can
+  choose Copper, Ice or Violet, or any colour at all. What is fixed is the accent's
+  *meaning* and its *count* — there is exactly one light, and it marks only what is
+  live or earned. Candidate hues are kept ≥30° from jade and clay rose so a light
+  can never be misread as a verdict. See **The Derived Palette Rule**.
+
 ### Secondary
 - **Jade Bloom** (`#1a6b49` daylight, `#79d9ae` night): correct answers only.
 - **Clay Rose** (`#a8324c` daylight, `#e88fa1` night): wrong answers only. Muted deliberately — a wrong answer
@@ -153,7 +159,31 @@ appear only on answer feedback, and one token reserved for notation.
 
 **The One Material Rule.** Every surface is the same color as the page. A panel that
 needs its own background color has failed to be carved and must be re-solved with
-shadow.
+shadow. The single exemption is **The Sample Is Content Rule** below.
+
+**The Sample Is Content Rule.** A swatch in the material picker carries its own color,
+because it is not a surface of the interface — it is a *sample of material*, the same
+way a notehead is a pitch rather than chrome. A sample is therefore carved from the
+material it offers, using that stone's own derived sheen and shade, so what you see
+is the relief you would get rather than a flat chip. This exemption covers samples
+only. It is not a licence for a tinted panel.
+
+**The Derived Palette Rule.** There are exactly two authored colors — the material and
+the light. Every other token is *solved* from them: the shadow pair, all three ink
+levels, the staff rule, the black keys, the two verdict hues and the six rank tiers.
+Nothing in the palette may be set independently, because independent values are how an
+unreadable combination gets built. Two consequences bind any future work here:
+
+- Text is solved against `mix(stone, sheen, 0.5)` — the ground `.roomlight` produces at
+  its brightest — never against the flat stone. A value tuned on the flat stone drifts
+  under AA at the top of the page.
+- Each token starts at the lightness the hand-tuned rendition already uses and moves
+  only as far as its floor requires, so the solver cannot quietly redesign a value that
+  was already right.
+
+A material whose luminance sits between 0.067 and 0.40 cannot hold readable text at all
+— neither black nor white clears 9:1 — so it is moved to the nearest workable value and
+the picker says so rather than silently correcting it.
 
 **The Light Means Live Rule.** Candlelight amber marks only what is currently active
 or achieved. If amber appears on something the learner cannot act on or has not
@@ -236,8 +266,20 @@ how state is communicated.
 
 ### Named Rules
 
-**The Press Inverts Rule.** Active and selected states invert the shadow pair rather
-than changing color. A pressed thing is genuinely pressed.
+**The Press Inverts Rule.** Hover, active and selected states all invert the shadow
+pair rather than changing color. A pressed thing is genuinely pressed.
+
+Hover was originally a *lift* (`--raised` plus a warm halo) and only click pressed
+in. It now presses on hover too, so the surface answers the pointer the moment it
+arrives rather than only on the click. The cost is that hover and click look
+identical — there is no separate "you have actually pressed it" frame — which is
+the trade this rule now accepts.
+
+Where press already carries meaning, **color** keeps the states apart: a hovered
+proficiency card or focus chip sinks like a selected one, but only the genuinely
+selected one takes the amber text. Depth answers the pointer; amber says what is
+chosen. Without that split, every card you swept the mouse across would read as
+selected.
 
 **The Bloom Earns Its Place Rule.** A zero-offset glow on a *surface* is decoration
 unless it marks live state: hover, focus, the answered choice, the due-for-review
@@ -289,6 +331,21 @@ Staff lines are engraved: a hairline of shade with a hairline of sheen directly 
 so the line reads as cut into the surface. The notehead is a raised amber pebble with
 its own bloom. The clef is incised in the display face.
 
+### Stone & Light (the material picker)
+A left-hand sheet, mirroring the tutor on the right — ask on one side, choose the
+material on the other. It offers six cut materials and four lights as carved samples,
+plus a colour input for each.
+
+Its own components are the app's, not new ones: the light swatches are progress pips
+(a well with light in it), and the preview strip runs the **real** `staffSvg` and the
+**real** `.pip` classes. That is deliberate. Notation is the component a bad palette
+kills first — borrowing the shadow color for staff lines once put them at 1.4:1 — so
+the picker proves the choice on the staff before the learner commits to it.
+
+Two shipped renditions (Porcelain, Blue hour) with the default light write **no**
+overrides at all and let `tokens.css` stand, so the hand-tuned design is reproduced
+exactly rather than approximately. Everything else is solved.
+
 ### Progress Pips
 Small round wells, pressed into the stone. Filling one lights it amber with a bloom.
 The learner reads distance-to-mastery as *how much of the row is lit*.
@@ -318,7 +375,11 @@ text and bloom, never a filled badge.
 - **Don't** reach for the conventional soft-UI grey (`#e0e5ec`) — the light rendition
   is a cool moonstone, deliberately not that value.
 - **Don't** add a second *accent*. Jade and clay rose are verdict state and the six
-  rank tiers are status marks; neither is licence for a decorative second hue.
+  rank tiers are status marks; neither is licence for a decorative second hue. The
+  light being choosable does not change this: there is still exactly one.
+- **Don't** hardcode a color anywhere outside `tokens.css` and `theme.js`. A literal
+  hex in a component silently opts that component out of the material the learner
+  chose, and no contrast check will catch it.
 - **Don't** animate more than the one authored moment (the material warming); scattered
   hover effects at assorted radii are not this world's motion — use `--warm`.
 - **Don't** let amber appear on inert prose. Emphasis inside a slide is weight and

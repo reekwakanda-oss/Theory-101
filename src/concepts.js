@@ -7,7 +7,7 @@
 import {
   LETTERS, MAJOR_STEPS, NATURAL_MINOR_STEPS, KEY_SIGNATURES, NOTE_VALUES,
   buildScale, buildTriad, relativeMinor, intervalAbove, intervalByShort,
-  pitchClass, midiOf, pretty, dotted, randomOf, choicesWith, TRIADS,
+  pitchClass, midiOf, ascendingFrom, pretty, dotted, randomOf, choicesWith, TRIADS,
   ordinal, anchorSummary,
 } from './theory.js';
 import { anchorList } from './ui.js';
@@ -170,7 +170,7 @@ export const CONCEPTS = [
         visual: null,
         choices: ['Half step', 'Whole step'],
         answer,
-        play: { midis: [midiOf(from, 4), midiOf(to, 4)], mode: 'melodic' },
+        play: { midis: ascendingFrom([from, to]), mode: 'melodic' },
       };
     },
   },
@@ -255,7 +255,7 @@ export const CONCEPTS = [
         visual: null,
         choices: choicesWith(answer, [...new Set(pool)]),
         answer,
-        play: { midis: scale.map((n) => midiOf(n, 4)), mode: 'melodic', gap: 0.32 },
+        play: { midis: ascendingFrom(scale), mode: 'melodic', gap: 0.32 },
       };
     },
   },
@@ -290,7 +290,7 @@ export const CONCEPTS = [
           visual: null,
           choices: choicesWith(answer, [...new Set(pool)]),
           answer,
-          play: { midis: buildScale(relativeMinor(tonic), NATURAL_MINOR_STEPS).map((n) => midiOf(n, 4)), mode: 'melodic', gap: 0.32 },
+          play: { midis: ascendingFrom(buildScale(relativeMinor(tonic), NATURAL_MINOR_STEPS)), mode: 'melodic', gap: 0.32 },
         };
       }
 
@@ -303,7 +303,7 @@ export const CONCEPTS = [
         visual: null,
         choices: choicesWith(answer, [...new Set(pool)]),
         answer,
-        play: { midis: scale.map((n) => midiOf(n, 4)), mode: 'melodic', gap: 0.32 },
+        play: { midis: ascendingFrom(scale), mode: 'melodic', gap: 0.32 },
       };
     },
   },
@@ -335,7 +335,7 @@ export const CONCEPTS = [
           visual: null,
           choices: choicesWith(answer, ['0', '1', '2', '3', '4', '5', '6']),
           answer,
-          play: { midis: buildScale(key, MAJOR_STEPS).map((n) => midiOf(n, 4)), mode: 'melodic', gap: 0.3 },
+          play: { midis: ascendingFrom(buildScale(key, MAJOR_STEPS)), mode: 'melodic', gap: 0.3 },
         };
       }
 
