@@ -137,7 +137,7 @@ export async function verifyGoogleToken(idToken, expectedNonce) {
  * later caller cannot accidentally do the weaker half.
  */
 export async function verifySignIn(credential, nonce) {
-  if (!store.consumeNonce(String(nonce ?? ''), NONCE_TTL_MS)) {
+  if (!await store.consumeNonce(String(nonce ?? ''), NONCE_TTL_MS)) {
     throw new AuthError('Sign-in expired. Please try again.');
   }
   return verifyGoogleToken(credential, String(nonce));
@@ -165,26 +165,26 @@ const hashToken = (token) => createHash('sha256').update(token).digest('hex');
  * passwords: a database dump should not be a set of working credentials.
  * 256 bits of entropy makes guessing infeasible, so no stretching is needed.
  */
-export function issueSession(userId) {
+export async function issueSession(userId) {
   const token = randomBytes(32).toString('base64url');
   const expiresAt = Date.now() + SESSION_TTL_MS;
-  store.createSession(hashToken(token), userId, expiresAt);
+  await store.createSession(hashToken(token), userId, expiresAt);
   return { token, expiresAt };
 }
 
-export function userForToken(token) {
+export async function userForToken(token) {
   if (typeof token !== 'string' || token.length < 16 || token.length > 256) return null;
   return store.sessionUser(hashToken(token));
 }
 
-export function revoke(token) {
-  if (typeof token === 'string') store.revokeSession(hashToken(token));
+export async function revoke(token) {
+  if (typeof token === 'string') await store.revokeSession(hashToken(token));
 }
 
 // --- Nonces -----------------------------------------------------------------
 
-export function newNonce() {
+export async function newNonce() {
   const nonce = randomBytes(24).toString('base64url');
-  store.issueNonce(nonce);
+  await store.issueNonce(nonce);
   return nonce;
 }

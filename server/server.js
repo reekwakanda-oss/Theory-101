@@ -12,6 +12,7 @@ import {
   PORT, HOST, GOOGLE_CLIENT_ID, SECURE_COOKIES, ALLOWED_ORIGINS,
   MAX_BODY_BYTES, RATE_LIMITS, NONCE_TTL_MS, assertProductionSafety,
   ASSISTANT_ENABLED, ASSISTANT_COOLDOWN_MS, ASSISTANT_DAILY_LIMIT,
+  DB_PATH, SUPABASE_URL,
 } from './config.js';
 import {
   validateContext, claimAssistantTurn, releaseAssistantTurn, assistantStatus, askTutor,
@@ -175,10 +176,10 @@ function originAllowed(req) {
 
 // --- Session ----------------------------------------------------------------
 
-function currentUser(req) {
+async function currentUser(req) {
   const token = cookies(req)[SESSION_COOKIE];
   if (!token) return null;
-  const user = userForToken(token);
+  const user = await userForToken(token);
   return user ? { ...user, token } : null;
 }
 
@@ -215,50 +216,50 @@ async function handleApi(req, res, path) {
     const body = await readBody(req);
     // Consumes the nonce and verifies the token as one step - see verifySignIn.
     const claims = await verifySignIn(body.credential, body.nonce);
-    const user = store.upsertUser({
+    const user = await store.upsertUser({
       sub: claims.sub, email: claims.email, name: claims.name, picture: claims.picture,
     });
 
     // A brand new session token on every sign-in, so a token captured before
     // login cannot be elevated by logging in (session fixation).
-    const { token, expiresAt } = issueSession(user.id);
+    const { token, expiresAt } = await issueSession(user.id);
 
     // Anything practised before signing in is folded in rather than lost.
     if (body.localProgress !== undefined && body.localProgress !== null) {
       const incoming = validateProgress(body.localProgress);
       if (incoming) {
-        const existing = store.loadProgress(user.id)?.data ?? null;
-        store.saveProgress(user.id, existing ? mergeProgress(existing, incoming) : incoming);
+        const existing = (await store.loadProgress(user.id))?.data ?? null;
+        await store.saveProgress(user.id, existing ? mergeProgress(existing, incoming) : incoming);
       }
     }
 
     const maxAge = Math.floor((expiresAt - Date.now()) / 1000);
     return send(res, 200,
-      { user: publicUser(user), progress: store.loadProgress(user.id)?.data ?? null },
+      { user: publicUser(user), progress: (await store.loadProgress(user.id))?.data ?? null },
       { 'Set-Cookie': sessionCookie(token, maxAge) });
   }
 
   if (path === '/api/auth/logout' && method === 'POST') {
-    const user = currentUser(req);
-    if (user) revoke(user.token);
+    const user = await currentUser(req);
+    if (user) await revoke(user.token);
     return send(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie('', 0) });
   }
 
   if (path === '/api/me' && method === 'GET') {
-    const user = currentUser(req);
+    const user = await currentUser(req);
     return send(res, 200, { user: publicUser(user), configured: Boolean(GOOGLE_CLIENT_ID) });
   }
 
   // What the tutor panel needs to decide whether to mount itself at all, and
   // how long it must wait. The budget is reported, never the key.
   if (path === '/api/assistant' && method === 'GET') {
-    const user = currentUser(req);
+    const user = await currentUser(req);
     return send(res, 200, {
       configured: ASSISTANT_ENABLED,
       signedIn: Boolean(user),
       cooldownMs: ASSISTANT_COOLDOWN_MS,
       dailyLimit: ASSISTANT_DAILY_LIMIT,
-      ...(user ? assistantStatus(user.user_id) : {}),
+      ...(user ? await assistantStatus(user.user_id) : {}),
     });
   }
 
@@ -268,7 +269,7 @@ async function handleApi(req, res, path) {
     }
     // Signed-in only: the per-account budget below is the only limit that
     // cannot be sidestepped by changing IP.
-    const user = currentUser(req);
+    const user = await currentUser(req);
     if (!user) return send(res, 401, { error: 'Sign in to ask the tutor.' });
     if (rateLimited(`ai:${clientIp(req)}`, RATE_LIMITS.assistant)) {
       return send(res, 429, { error: 'Slow down' });
@@ -281,7 +282,7 @@ async function handleApi(req, res, path) {
     const checked = validateContext(body);
     if (!checked.ok) return send(res, 400, { error: checked.error });
 
-    const claim = claimAssistantTurn(user.user_id);
+    const claim = await claimAssistantTurn(user.user_id);
     if (!claim.ok) {
       return send(res, 429,
         { error: claim.error, reason: claim.reason, retryAfterMs: claim.retryAfterMs, resetAt: claim.resetAt },
@@ -292,7 +293,7 @@ async function handleApi(req, res, path) {
     if (!result.ok) {
       // They got nothing, so give the question back - but not the cooldown,
       // or a failing provider invites a retry loop.
-      releaseAssistantTurn(user.user_id);
+      await releaseAssistantTurn(user.user_id);
       return send(res, result.status ?? 502, { error: result.error });
     }
     return send(res, 200, {
@@ -303,14 +304,14 @@ async function handleApi(req, res, path) {
   }
 
   if (path === '/api/progress') {
-    const user = currentUser(req);
+    const user = await currentUser(req);
     if (!user) return send(res, 401, { error: 'Not signed in' });
 
     if (method === 'GET') {
       if (rateLimited(`read:${clientIp(req)}`, RATE_LIMITS.read)) {
         return send(res, 429, { error: 'Slow down' });
       }
-      const row = store.loadProgress(user.user_id);
+      const row = await store.loadProgress(user.user_id);
       return send(res, 200, { progress: row?.data ?? null, updatedAt: row?.updatedAt ?? null });
     }
 
@@ -324,15 +325,15 @@ async function handleApi(req, res, path) {
       const clean = validateProgress(body.progress);
       if (!clean) return send(res, 400, { error: 'Progress payload was not valid' });
       // The row is keyed by the session's user, never by an id from the body.
-      const updatedAt = store.saveProgress(user.user_id, clean);
+      const updatedAt = await store.saveProgress(user.user_id, clean);
       return send(res, 200, { ok: true, updatedAt });
     }
   }
 
   if (path === '/api/account' && method === 'DELETE') {
-    const user = currentUser(req);
+    const user = await currentUser(req);
     if (!user) return send(res, 401, { error: 'Not signed in' });
-    store.deleteAccount(user.user_id); // cascades to sessions and progress
+    await store.deleteAccount(user.user_id); // cascades to sessions and progress
     return send(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie('', 0) });
   }
 
@@ -405,13 +406,32 @@ if (problems.some((p) => p.includes('production'))) {
 }
 for (const p of problems) console.warn('[warning]', p);
 
-setInterval(() => store.purgeExpired(NONCE_TTL_MS), 60 * 60 * 1000).unref();
+// Housekeeping must not take the server down: on Supabase this is a network
+// call, and a blip here is not a reason to stop serving.
+setInterval(() => {
+  store.purgeExpired(NONCE_TTL_MS).catch((error) =>
+    console.warn('[warning] could not purge expired rows:', error.message));
+}, 60 * 60 * 1000).unref();
 
-server.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, async () => {
   console.log(`Theory 101 on http://localhost:${PORT}`);
   console.log(`  sign-in: ${GOOGLE_CLIENT_ID ? 'configured' : 'NOT configured (set GOOGLE_CLIENT_ID)'}`);
   console.log(`  tutor:   ${ASSISTANT_ENABLED ? 'configured' : 'NOT configured (set FIREWORKS_API_KEY)'}`);
   console.log(`  cookies: ${SECURE_COOKIES ? 'Secure' : 'not Secure (development only)'}`);
+
+  if (store.BACKEND !== 'supabase') {
+    console.log(`  storage: SQLite at ${DB_PATH}`);
+    return;
+  }
+  // Reach the database once at boot. A wrong key or an unrun schema is far
+  // cheaper to discover here than on somebody's first sign-in.
+  const { pingSupabase } = await import('./supabase.js');
+  const ping = await pingSupabase();
+  console.log(`  storage: Supabase ${SUPABASE_URL}`);
+  if (!ping.ok) {
+    console.warn('[warning] Supabase did not answer:', ping.error);
+    console.warn('          Has server/schema.sql been run in the SQL editor?');
+  }
 });
 
 export { server };

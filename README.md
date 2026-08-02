@@ -9,8 +9,9 @@ practice to a visible threshold, then ranked drills and longer lessons.
 
 No build step and no npm dependencies — not for the app, and not for the server
 either. Node 22+ supplies everything used (`node:sqlite`, `node:crypto`,
-`node:http`), so there is nothing to install and nothing in the supply chain to
-audit.
+`node:http`, `fetch`), so there is nothing to install and nothing in the supply
+chain to audit. That holds even with Supabase configured: it is reached over
+plain HTTP rather than through its SDK.
 
 ```bash
 node server/server.js
@@ -21,6 +22,37 @@ Then open <http://localhost:8000>.
 The app runs perfectly well without sign-in; the server will say so on startup
 and progress stays on the device. A plain static host (`python -m http.server`)
 also still works — you just lose accounts.
+
+### Storing progress in Supabase (optional)
+
+By default the server keeps everything in a local SQLite file and needs no
+setup. To use Supabase Postgres instead:
+
+1. In the Supabase dashboard, open **SQL Editor → New query**, paste all of
+   [`server/schema.sql`](server/schema.sql), and run it. It is idempotent.
+2. Copy two values into `.env`:
+   - `SUPABASE_URL` — **Settings → Data API → Project URL**. Not secret.
+   - `SUPABASE_SERVICE_ROLE_KEY` — **Settings → API Keys → `service_role`**.
+     Very secret: it bypasses row level security. Not the `anon` key — that one
+     is subject to RLS, which `schema.sql` enables with no policies, so every
+     query would come back empty and look like an empty database.
+3. Check it:
+
+   ```bash
+   node --env-file-if-exists=.env server/check-supabase.mjs
+   ```
+
+   This verifies the connection, that all five tables and both functions exist,
+   and — if you also set `SUPABASE_ANON_KEY` — that the public key genuinely
+   **cannot** read your tables. It writes nothing.
+
+4. Start with `node --env-file-if-exists=.env server/server.js`. The banner
+   reports which backend is live and pings it once, so a wrong key or an unrun
+   schema shows up immediately rather than on someone's first sign-in.
+
+Set both variables or neither; setting one is reported at boot rather than
+silently falling back to SQLite. Still no npm dependencies — Supabase is reached
+over its PostgREST HTTP API with the built-in `fetch`.
 
 ### Setting up Google sign-in
 
@@ -104,7 +136,12 @@ interval drill is drawing from genuinely harder material than a Bronze one.
 | `src/progress-schema.js` | Validation and merge rules, shared with the server |
 | `server/server.js` | HTTP routing, security headers, static files |
 | `server/auth.js` | Google token verification and sessions |
-| `server/db.js` | SQLite schema and queries |
+| `server/db.js` | Picks the storage backend; one async interface either way |
+| `server/db-sqlite.js` | The default backend: a local SQLite file, no setup |
+| `server/db-supabase.js` | The Supabase backend, same interface |
+| `server/supabase.js` | PostgREST over `fetch`. The whole client, no SDK |
+| `server/schema.sql` | The Postgres schema, RLS lockdown, and the atomic budget claim |
+| `supabasetest.mjs` | One storage contract, run against both backends |
 | `SECURITY.md` | What is protected, how, and what deliberately isn't |
 | `styles/tokens.css` | The entire visual identity |
 

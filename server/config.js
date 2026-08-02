@@ -30,6 +30,36 @@ export const PRODUCTION = process.env.NODE_ENV === 'production';
 export const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? `http://localhost:${PORT}`)
   .split(',').map((o) => o.trim()).filter(Boolean);
 
+// --- Storage ----------------------------------------------------------------
+
+/**
+ * Supabase, if configured. The project URL is not secret; the service_role key
+ * very much is - it BYPASSES row level security and is the database's master
+ * key. It is read here and used only by server/supabase.js, and the app's CSP
+ * pins connect-src to 'self', so the browser cannot reach supabase.co at all.
+ *
+ * Do NOT use the `anon` key here. It is subject to RLS, and server/schema.sql
+ * deliberately enables RLS with no policies, so every query would return empty
+ * and the failure would look like an empty database rather than a wrong key.
+ */
+/**
+ * The project origin. The Supabase dashboard shows the REST endpoint
+ * (`https://x.supabase.co/rest/v1/`) as prominently as the project URL, and
+ * pasting that one is an easy mistake - supabase.js appends `/rest/v1` itself,
+ * so it would have produced `/rest/v1/rest/v1/users` and 404ed on everything.
+ * Both forms are accepted rather than one being punished.
+ */
+export const SUPABASE_URL = (process.env.SUPABASE_URL ?? '')
+  .trim()
+  .replace(/\/+$/, '')
+  .replace(/\/rest\/v1$/, '');
+export const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+export const SUPABASE_TIMEOUT_MS = int(process.env.SUPABASE_TIMEOUT_SECONDS, 10) * 1000;
+
+/** Both halves or neither - a URL with no key would fail on every request. */
+export const USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
+
+/** Only used by the SQLite backend, and only when Supabase is not configured. */
 export const DB_PATH = process.env.DB_PATH ?? join(process.cwd(), 'server', 'data', 'theory101.db');
 
 export const SESSION_TTL_MS = int(process.env.SESSION_TTL_DAYS, 30) * 24 * 60 * 60 * 1000;
@@ -105,5 +135,32 @@ export function assertProductionSafety() {
   if (PRODUCTION && ALLOWED_ORIGINS.some((o) => o.startsWith('http://') && !o.includes('localhost'))) {
     problems.push('An insecure http:// origin is allowed in production. Sessions would be interceptable.');
   }
+  // Half-configured Supabase is worse than none: the server would start on
+  // SQLite while the operator believed it was writing to Postgres.
+  if (SUPABASE_URL && !SUPABASE_SERVICE_ROLE_KEY) {
+    problems.push('SUPABASE_URL is set but SUPABASE_SERVICE_ROLE_KEY is not, so storage silently fell back to the local SQLite file. Set both or neither.');
+  }
+  if (SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_URL) {
+    problems.push('SUPABASE_SERVICE_ROLE_KEY is set but SUPABASE_URL is not, so storage silently fell back to the local SQLite file. Set both or neither.');
+  }
+  // The anon key is a JWT whose payload names the role. Catching this here
+  // turns a baffling "everything is empty" into one clear line at boot.
+  if (USE_SUPABASE && !looksLikeServiceRole(SUPABASE_SERVICE_ROLE_KEY)) {
+    problems.push('SUPABASE_SERVICE_ROLE_KEY does not look like a service_role key. The anon key is subject to row level security, which schema.sql enables with no policies, so every query would come back empty.');
+  }
   return problems;
+}
+
+/** Decodes the unverified payload purely to read `role`. Never trusted for auth. */
+function looksLikeServiceRole(key) {
+  // Supabase's newer `sb_secret_...` keys are not JWTs at all, so a missing
+  // payload segment proves nothing. Only an explicitly non-service_role JWT is
+  // worth warning about.
+  const payload = key.split('.')[1];
+  if (!payload) return true;
+  try {
+    return JSON.parse(Buffer.from(payload, 'base64url').toString()).role === 'service_role';
+  } catch {
+    return true; // unreadable is not proof of anything
+  }
 }

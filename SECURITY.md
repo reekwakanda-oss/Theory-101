@@ -15,6 +15,30 @@ is protected and — just as importantly — what is deliberately not protected.
 | SHA-256 of each session token | `sessions.token_hash` | Sign-in state |
 | Tutor questions used today, last ask time | `assistant_usage` | Enforcing the cooldown and daily cap |
 
+Those tables live in **one of two places**, chosen by configuration:
+
+- **A local SQLite file** (the default, no setup) — `server/data/theory101.db`.
+- **Supabase Postgres**, when `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are
+  set. The schema is [`server/schema.sql`](server/schema.sql).
+
+If you use Supabase, two things in that file are load-bearing and must not be
+undone. **Row level security is enabled on every table with no policies at all**,
+and the `anon` and `authenticated` roles have every grant revoked. Supabase gives
+the `anon` role access to the `public` schema by default, and the anon key is
+designed to be published — so a table there with RLS switched off is world
+readable, including `users` and `sessions`. RLS with no policies denies everyone;
+`service_role` bypasses RLS by design, which is how this server still works. The
+bottom of `schema.sql` re-checks this and raises rather than finishing quietly,
+so a later migration that turns RLS off fails loudly.
+
+The `service_role` key is the database's master key. It is read only by
+[`server/config.js`](server/config.js), used only by
+[`server/supabase.js`](server/supabase.js), and the CSP's `connect-src 'self'`
+means the browser cannot reach `supabase.co` even if a bug tried to send it
+there. **Never put the service key in the browser, and never use the anon key on
+the server** — the server would read nothing and the failure would look like an
+empty database rather than a wrong key.
+
 **Not stored:** passwords (there are none), Google access or refresh tokens,
 ID tokens after verification, IP addresses, or any analytics. There is no
 third-party tracking, and no avatar is loaded, so no image request tells Google
@@ -23,9 +47,16 @@ lives in the browser tab and dies with it.
 
 ## What leaves this server
 
-Two third parties, both only when you opt in.
+Up to three third parties, all only when you opt in.
 
 **Google**, when you choose to sign in. Standard Sign in with Google.
+
+**Supabase**, if it is configured as the storage backend. Then everything in the
+table above is held by Supabase rather than on this machine, and their retention,
+backup and access policies apply to it. Nothing extra is sent — it is the same
+data, in the same shape, in someone else's Postgres. This is the one choice here
+that moves account data off your own disk, so make it deliberately. Leave
+`SUPABASE_URL` unset and nothing leaves for this reason at all.
 
 **The model provider** (Fireworks by default), when you ask the tutor a
 question. Each request carries:
@@ -113,13 +144,15 @@ become account takeover. This is covered by a test.
 | XSS | CSP with **no `unsafe-inline` on `script-src`** and no `unsafe-eval` anywhere; the app has no inline scripts, so that costs nothing |
 | Clickjacking | `frame-ancestors 'none'` and `X-Frame-Options: DENY` |
 | MIME sniffing | `X-Content-Type-Options: nosniff` |
-| SQL injection | Every statement is prepared and parameterised; no string is ever concatenated into SQL |
+| SQL injection | SQLite: every statement is prepared and parameterised. Supabase: every value goes through PostgREST as a URL-encoded filter or a JSON body, never as SQL text. No string is concatenated into SQL on either path |
 | Path traversal | Resolved paths must stay inside the project root; `server/`, `.git`, and all dotfiles are unreachable |
 | Prototype pollution | `__proto__`, `constructor` and `prototype` keys are rejected by the progress validator |
 | Brute force / flooding | Per-IP rate limits on sign-in, reads and writes |
 | Oversized payloads | 64 KB cap; the request is abandoned mid-read and the connection closed |
 | Provider key exposure | The key is read from the environment by the server only. `connect-src 'self'` in the CSP means the page *cannot* call the provider even if a future change tried to — **never add the provider host to that directive** |
-| Tutor cost abuse | Signed-in only; a 10s cooldown and a daily cap per **account**, held in SQLite so a restart does not reset them; the turn is claimed *before* the provider call; `max_tokens` capped; a per-IP backstop on top |
+| Tutor cost abuse | Signed-in only; a 10s cooldown and a daily cap per **account**, held in the database so a restart does not reset them; the turn is claimed *before* the provider call; `max_tokens` capped; a per-IP backstop on top |
+| Two asks racing past the cooldown | The claim is one atomic step, never a read followed by a write. SQLite gets that from being synchronous and single-threaded; Postgres from `SELECT ... FOR UPDATE` in `claim_assistant_turn`. The Postgres version is the stronger of the two: it holds across several server processes, which the SQLite one never did |
+| A replayed sign-in nonce | Consumed by a single statement that deletes and returns in one step, so two requests arriving together cannot both see it |
 | Prompt injection | Rules live in `system` turns and your text is the only `user` turn; every field is length-capped and stripped of newlines and control characters, so a crafted question cannot forge a section of the prompt. Not solved — see the limits below |
 | Model output | Rendered with `textContent`, never `innerHTML`. It is never stored, never routed, never evaluated |
 
@@ -165,8 +198,20 @@ high-value data, and these gaps are deliberate rather than overlooked:
 - **The client IP comes from the socket**, not `X-Forwarded-For`. Behind a proxy
   every request appears to come from one address, and rate limits would apply
   globally. Handle this at the proxy, or add trusted-proxy parsing.
-- **The database is not encrypted at rest.** Protect it with file permissions
-  and disk encryption.
+- **The database is not encrypted at rest.** On SQLite, protect it with file
+  permissions and disk encryption. On Supabase, disk encryption is theirs and
+  their access controls become part of your threat model.
+- **Nothing verifies the deployed Supabase schema.** `server/schema.sql` is
+  applied by hand in the dashboard, so a project where it was never run, or was
+  later edited, will not match what the code expects. The boot check reaches the
+  database but does not compare its shape. Re-run `schema.sql` after any change;
+  it is idempotent and re-asserts that RLS is still on.
+- **The Supabase tests use a fake PostgREST, not a real project.** They prove
+  the two backends agree and that the HTTP contract is right. They cannot prove
+  the PL/pgSQL in `schema.sql` is correct, because the fake reimplements its
+  logic in JavaScript — the two could agree and both be wrong. The row-locking
+  in `claim_assistant_turn` in particular only exists in the real database.
+  Exercise the tutor once against the real project before trusting it.
 - **No audit log, no anomaly detection, no 2FA** (Google supplies its own).
 - **No CSRF token** beyond `SameSite` + `Origin`. Adding double-submit tokens
   would be the next step if this ever held anything sensitive.

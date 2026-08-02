@@ -14,7 +14,7 @@ import {
   FIREWORKS_API_KEY, ASSISTANT_URL, ASSISTANT_MODEL, ASSISTANT_FAKE,
   ASSISTANT_COOLDOWN_MS, ASSISTANT_DAILY_LIMIT, ASSISTANT_TIMEOUT_MS, ASSISTANT_MAX_TOKENS,
 } from './config.js';
-import { assistantUsage, setAssistantUsage } from './db.js';
+import { assistantUsage, claimTurn, releaseTurn } from './db.js';
 import { CONCEPTS, conceptById } from '../src/concepts.js';
 import { DRILLS, drillById } from '../src/drills.js';
 import { LESSONS, lessonById } from '../src/lessons.js';
@@ -318,8 +318,8 @@ function refusal(context) {
 
 const utcDay = (at = Date.now()) => new Date(at).toISOString().slice(0, 10);
 
-export function assistantStatus(userId) {
-  const row = assistantUsage(userId);
+export async function assistantStatus(userId) {
+  const row = await assistantUsage(userId);
   const now = Date.now();
   const used = !row || row.day !== utcDay(now) ? 0 : row.used;
   const since = row ? now - row.last_at : Infinity;
@@ -333,18 +333,23 @@ export function assistantStatus(userId) {
 /**
  * Take one turn from this account's budget, or explain why not.
  *
- * There is deliberately NO `await` between reading the row and writing it back.
- * node:sqlite is synchronous and Node is single-threaded, so that sequence
- * cannot interleave with another in-flight request. Introduce an await here and
- * two concurrent posts will both sail past the cooldown.
+ * The DECISION is the store's, not this function's. Whether a claim can be made
+ * without racing depends entirely on the storage engine: SQLite gets it from
+ * being synchronous and single-threaded, Postgres from a row lock. Deciding
+ * here would mean reading, awaiting, then writing - and two concurrent posts
+ * would both read "cooled down" before either wrote.
+ *
+ * What stays here is the wording, because that is a product decision rather
+ * than a storage one.
  */
-export function claimAssistantTurn(userId) {
+export async function claimAssistantTurn(userId) {
   const now = Date.now();
-  const today = utcDay(now);
-  const row = assistantUsage(userId);
+  const claim = await claimTurn(userId, ASSISTANT_COOLDOWN_MS, ASSISTANT_DAILY_LIMIT, utcDay(now), now);
 
-  if (row && now - row.last_at < ASSISTANT_COOLDOWN_MS) {
-    const retryAfterMs = ASSISTANT_COOLDOWN_MS - (now - row.last_at);
+  if (claim.ok) return { ok: true, remaining: Math.max(0, ASSISTANT_DAILY_LIMIT - claim.used) };
+
+  if (claim.reason === 'cooldown') {
+    const retryAfterMs = Math.max(1, ASSISTANT_COOLDOWN_MS - (now - claim.last_at));
     return {
       ok: false,
       reason: 'cooldown',
@@ -353,22 +358,14 @@ export function claimAssistantTurn(userId) {
     };
   }
 
-  // A new UTC day resets the count, but never the cooldown: last_at is carried
-  // by the same row, so midnight is not a free pass.
-  const used = row && row.day === today ? row.used : 0;
-  const status = assistantStatus(userId);
-  if (used >= ASSISTANT_DAILY_LIMIT) {
-    return {
-      ok: false,
-      reason: 'daily',
-      error: "That's today's questions used up. The hints and the explanations are still there.",
-      retryAfterMs: Math.max(0, status.resetAt - now),
-      resetAt: status.resetAt,
-    };
-  }
-
-  setAssistantUsage(userId, today, used + 1, now);
-  return { ok: true, remaining: ASSISTANT_DAILY_LIMIT - (used + 1) };
+  const resetAt = Date.parse(`${utcDay(now)}T00:00:00Z`) + 24 * 60 * 60 * 1000;
+  return {
+    ok: false,
+    reason: 'daily',
+    error: "That's today's questions used up. The hints and the explanations are still there.",
+    retryAfterMs: Math.max(0, resetAt - now),
+    resetAt,
+  };
 }
 
 /**
@@ -376,10 +373,8 @@ export function claimAssistantTurn(userId) {
  * last_at is deliberately NOT rewound, so a failing provider cannot be retried
  * in a tight loop.
  */
-export function releaseAssistantTurn(userId) {
-  const row = assistantUsage(userId);
-  if (!row || row.used <= 0) return;
-  setAssistantUsage(userId, row.day, row.used - 1, row.last_at);
+export async function releaseAssistantTurn(userId) {
+  await releaseTurn(userId);
 }
 
 // --- Talking to the model ---------------------------------------------------

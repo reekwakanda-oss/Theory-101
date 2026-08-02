@@ -37,7 +37,21 @@ clean();
 const store = await import('./server/db.js');
 const tutor = await import('./server/assistant.js');
 
-const newUser = (sub) => store.upsertUser({ sub, email: `${sub}@test`, name: sub }).id;
+// The raw SQLite handle, for SEEDING ONLY. The store's public interface has no
+// "write an arbitrary usage row" call and should not grow one just so a test
+// can build a state - reaching past it here keeps that pressure off the API.
+// This is also why these tests pin the SQLite backend via DB_PATH above.
+const { db } = await import('./server/db-sqlite.js');
+
+const newUser = async (sub) =>
+  (await store.upsertUser({ sub, email: `${sub}@test`, name: sub })).id;
+
+/** Put the budget into an exact state, the way only a test needs to. */
+const seedUsage = (userId, day, used, lastAt) => db.prepare(
+  `INSERT INTO assistant_usage (user_id, day, used, last_at) VALUES (?, ?, ?, ?)
+   ON CONFLICT(user_id) DO UPDATE SET day = excluded.day, used = excluded.used,
+                                      last_at = excluded.last_at`,
+).run(userId, day, used, lastAt);
 
 // --- Pure: what the model is asked ------------------------------------------
 
@@ -144,64 +158,64 @@ test('revealsAnswer handles multi-note chord answers', () => {
 
 // --- The per-account budget --------------------------------------------------
 
-test('the cooldown blocks a second ask', () => {
-  const id = newUser('cooldown-user');
-  assert.equal(tutor.claimAssistantTurn(id).ok, true);
-  const second = tutor.claimAssistantTurn(id);
+test('the cooldown blocks a second ask', async () => {
+  const id = await newUser('cooldown-user');
+  assert.equal((await tutor.claimAssistantTurn(id)).ok, true);
+  const second = await tutor.claimAssistantTurn(id);
   assert.equal(second.ok, false);
   assert.equal(second.reason, 'cooldown');
   assert.ok(second.retryAfterMs > 8000 && second.retryAfterMs <= 10000);
 });
 
-test('the daily cap stops at the limit', () => {
-  const id = newUser('cap-user');
+test('the daily cap stops at the limit', async () => {
+  const id = await newUser('cap-user');
   const today = new Date().toISOString().slice(0, 10);
-  store.setAssistantUsage(id, today, 3, Date.now() - 60_000);   // limit is 3
-  const claim = tutor.claimAssistantTurn(id);
+  seedUsage(id, today, 3, Date.now() - 60_000);   // limit is 3
+  const claim = await tutor.claimAssistantTurn(id);
   assert.equal(claim.ok, false);
   assert.equal(claim.reason, 'daily');
   assert.ok(claim.resetAt > Date.now());
 });
 
-test('a new UTC day resets the count but NOT the cooldown', () => {
+test('a new UTC day resets the count but NOT the cooldown', async () => {
   // The bug the one-row-per-user shape exists to prevent: with a row per day,
   // the first ask after midnight would have no last_at and skip the cooldown.
-  const id = newUser('rollover-user');
+  const id = await newUser('rollover-user');
   const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-  store.setAssistantUsage(id, yesterday, 3, Date.now() - 2000);  // asked 2s ago
-  const claim = tutor.claimAssistantTurn(id);
+  seedUsage(id, yesterday, 3, Date.now() - 2000);  // asked 2s ago
+  const claim = await tutor.claimAssistantTurn(id);
   assert.equal(claim.ok, false, 'cooldown must still apply across midnight');
   assert.equal(claim.reason, 'cooldown');
 
-  store.setAssistantUsage(id, yesterday, 3, Date.now() - 60_000); // and long ago
-  const later = tutor.claimAssistantTurn(id);
+  seedUsage(id, yesterday, 3, Date.now() - 60_000); // and long ago
+  const later = await tutor.claimAssistantTurn(id);
   assert.equal(later.ok, true, 'yesterday\'s count must not carry over');
   assert.equal(later.remaining, 2);
 });
 
-test('a failed provider refunds the question but keeps the cooldown', () => {
-  const id = newUser('refund-user');
-  tutor.claimAssistantTurn(id);
-  const spent = store.assistantUsage(id);
-  tutor.releaseAssistantTurn(id);
-  const after = store.assistantUsage(id);
+test('a failed provider refunds the question but keeps the cooldown', async () => {
+  const id = await newUser('refund-user');
+  await tutor.claimAssistantTurn(id);
+  const spent = await store.assistantUsage(id);
+  await tutor.releaseAssistantTurn(id);
+  const after = await store.assistantUsage(id);
   assert.equal(after.used, spent.used - 1, 'the question is given back');
   assert.equal(after.last_at, spent.last_at, 'the cooldown is not rewound');
 });
 
-test('budget survives a restart', () => {
-  const id = newUser('restart-user');
-  tutor.claimAssistantTurn(id);
-  const row = store.assistantUsage(id);
+test('budget survives a restart', async () => {
+  const id = await newUser('restart-user');
+  await tutor.claimAssistantTurn(id);
+  const row = await store.assistantUsage(id);
   assert.ok(row.used >= 1 && row.last_at > 0);
 });
 
-test('deleting an account removes its usage row', () => {
-  const id = newUser('doomed-user');
-  tutor.claimAssistantTurn(id);
-  assert.ok(store.assistantUsage(id));
-  store.deleteAccount(id);
-  assert.equal(store.assistantUsage(id), null);
+test('deleting an account removes its usage row', async () => {
+  const id = await newUser('doomed-user');
+  await tutor.claimAssistantTurn(id);
+  assert.ok(await store.assistantUsage(id));
+  await store.deleteAccount(id);
+  assert.equal(await store.assistantUsage(id), null);
 });
 
 // --- The endpoint, over real HTTP -------------------------------------------
@@ -230,10 +244,10 @@ async function waitForServer() {
   return false;
 }
 
-function sessionFor(sub) {
-  const id = newUser(sub);
+async function sessionFor(sub) {
+  const id = await newUser(sub);
   const token = randomBytes(32).toString('base64url');
-  store.createSession(createHash('sha256').update(token).digest('hex'), id, Date.now() + 36e5);
+  await store.createSession(createHash('sha256').update(token).digest('hex'), id, Date.now() + 36e5);
   return { id, token };
 }
 
@@ -264,7 +278,7 @@ test('endpoint: unconfigured reports itself unavailable', async (t) => {
   const status = await (await fetch(`${BASE}/api/assistant`)).json();
   assert.equal(status.configured, false);
 
-  const { token } = sessionFor('unconfigured-user');
+  const { token } = await sessionFor('unconfigured-user');
   const res = await post(ASK, token);
   assert.equal(res.status, 503);
   assert.equal((await res.json()).configured, false);
@@ -278,7 +292,7 @@ test('endpoint: signed out is refused, and the guardrail replaces a leak', async
   const anon = await post(ASK, null);
   assert.equal(anon.status, 401, 'signed out cannot ask');
 
-  const { token } = sessionFor('leak-user');
+  const { token } = await sessionFor('leak-user');
   const res = await post(ASK, token);
   assert.equal(res.status, 200);
   const body = await res.json();
@@ -292,7 +306,7 @@ test('endpoint: cooldown, daily cap and a rejected id', async (t) => {
   t.after(() => child.kill());
   assert.ok(await waitForServer(), 'server started');
 
-  const { id, token } = sessionFor('flow-user');
+  const { id, token } = await sessionFor('flow-user');
 
   const first = await post(ASK, token);
   assert.equal(first.status, 200);
@@ -304,13 +318,13 @@ test('endpoint: cooldown, daily cap and a rejected id', async (t) => {
   assert.equal((await second.json()).reason, 'cooldown');
 
   // An unknown id is rejected before the budget is touched.
-  store.setAssistantUsage(id, new Date().toISOString().slice(0, 10), 1, 0);
+  seedUsage(id, new Date().toISOString().slice(0, 10), 1, 0);
   const bad = await post({ ...ASK, context: { screen: 'drill', drillId: 'nope' } }, token);
   assert.equal(bad.status, 400);
-  assert.equal(store.assistantUsage(id).used, 1, 'a rejected request costs nothing');
+  assert.equal((await store.assistantUsage(id)).used, 1, 'a rejected request costs nothing');
 
   // Spend the allowance.
-  store.setAssistantUsage(id, new Date().toISOString().slice(0, 10), 3, 0);
+  seedUsage(id, new Date().toISOString().slice(0, 10), 3, 0);
   const capped = await post(ASK, token);
   assert.equal(capped.status, 429);
   assert.equal((await capped.json()).reason, 'daily');
@@ -321,7 +335,7 @@ test('endpoint: a foreign origin is refused', async (t) => {
   t.after(() => child.kill());
   assert.ok(await waitForServer(), 'server started');
 
-  const { token } = sessionFor('csrf-user');
+  const { token } = await sessionFor('csrf-user');
   const res = await fetch(`${BASE}/api/assistant`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Origin: '1', Cookie: `sid=${token}` },
@@ -330,4 +344,4 @@ test('endpoint: a foreign origin is refused', async (t) => {
   assert.equal(res.status, 403);
 });
 
-test.after(() => { store.close(); clean(); });
+test.after(async () => { await store.close(); clean(); });
